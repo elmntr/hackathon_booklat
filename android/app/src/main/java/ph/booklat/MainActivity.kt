@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.BackHandler
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.*
@@ -23,7 +24,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
@@ -45,11 +45,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-val Mist=Color(0xffeef1ed); val Chalk=Color(0xfffafbf8); val Ink=Color(0xff252c2a); val Vermilion=Color(0xffa33a26); val Rule=Color(0xffd7ded7)
-val Green=Color(0xff245330); val Wine=Color(0xff872449); val Blue=Color(0xff254b7e); val Amber=Color(0xff68500c)
 class MainActivity:ComponentActivity() {
     private val vm by viewModels<BooklatModel>()
-    override fun onCreate(savedInstanceState:Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge(); setContent { Booklat(vm) } }
+    override fun onCreate(savedInstanceState:Bundle?) { super.onCreate(savedInstanceState); enableEdgeToEdge(statusBarStyle=SystemBarStyle.light(0xffeef1ed.toInt(),0xffeef1ed.toInt()),navigationBarStyle=SystemBarStyle.light(0xffeef1ed.toInt(),0xffeef1ed.toInt())); setContent { Booklat(vm) } }
     override fun onStop() { if(!isChangingConfigurations) vm.background(); super.onStop() }
 }
 @Composable fun Action(label:String,enabled:Boolean=true,onClick:()->Unit) { Button(onClick,enabled=enabled,shape=RoundedCornerShape(4.dp),contentPadding=PaddingValues(horizontal=16.dp,vertical=12.dp),modifier=Modifier.heightIn(min=48.dp)) { Text(label) } }
@@ -73,7 +71,7 @@ fun Modifier.toggleableCompat(value:Boolean,change:(Boolean)->Unit)=this.clickab
     fun share(file:File,mime:String) { val uri=FileProvider.getUriForFile(context,"${context.packageName}.exports",file); context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType(mime).putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),"Save a copy")) }
     fun export(kind:String) { vm.task { val file=withContext(Dispatchers.IO) { when(kind){"csv"->vm.store.csv();"backup"->vm.store.backup();"report"->vm.store.report(vm.reading!!);else->vm.store.recordings(vm.reading!!)[portion].copyTo(vm.store.exportFile("booklat-recording.wav"),overwrite=true)} }; share(file,when(kind){"csv"->"text/csv";"backup"->"application/zip";"report"->"text/html";else->"audio/wav"}) } }
     BackHandler(vm.full||vm.screen!="landing") { when { vm.full->vm.full=false;vm.active->vm.stop();else->vm.navigate("setup".takeIf { vm.screen!="setup" }?:"landing") } }
-    MaterialTheme(colorScheme=lightColorScheme(primary=Vermilion,onPrimary=Chalk,background=Mist,surface=Chalk,onSurface=Ink,onBackground=Ink,secondary=Blue,outline=Color(0xff7e8982)),typography=Typography()) {
+    BooklatTheme {
         Surface(color=Mist,modifier=Modifier.fillMaxSize()) {
             Column(Modifier.safeDrawingPadding().imePadding().fillMaxSize()) {
                 Row(Modifier.fillMaxWidth().padding(horizontal=16.dp,vertical=4.dp),verticalAlignment=Alignment.CenterVertically) {
@@ -158,7 +156,7 @@ fun Modifier.toggleableCompat(value:Boolean,change:(Boolean)->Unit)=this.clickab
                 }
             } }
         }
-        vm.editWord?.let { i->val r=vm.reading!!; AlertDialog(onDismissRequest={vm.editWord=null},title={Text("Mark “${r.passage.tokens[i]}”")},text={Column {listOf("correct" to "Correct","substitution" to "Wrong","omission" to "Skipped","not_reached" to "Not read","repeat" to "Toggle repeated").forEach { (key,label)->TextButton({vm.correct(key)}){Text(label)} };if(!vm.active&&r.marks[i].t0!=null) { val start=r.marks[i].t0!!;val file=vm.store.recordings(r).lastOrNull { (it.nameWithoutExtension.toDoubleOrNull()?:0.0)<=start };if(file!=null) TextButton({playback(file,start-(file.nameWithoutExtension.toDoubleOrNull()?:0.0));vm.editWord=null}){Text("Play from word")} } }},confirmButton={TextButton({vm.editWord=null}){Text("Close")}}) }
-        download?.let { lang->AlertDialog(onDismissRequest={download=null},title={Text("Install ${if(lang=="en") "English" else "Filipino"} model?")},text={Text(if(lang=="en") "Vosk small English 0.15. Apache 2.0. Download about 40 MB; allow 150 MB storage and about 300 MB runtime memory. Downloads from alphacephei.com only. Audio stays on this device." else "Vosk Filipino 0.6 by feddybear. CC BY-NC-SA 4.0, noncommercial use with attribution and share-alike. Download about 320 MB; allow 1 GB free storage and substantial runtime memory. Downloads from alphacephei.com only. Audio stays on this device.")},confirmButton={TextButton({download=null;vm.install(lang,null)}){Text("Download")}},dismissButton={TextButton({download=null}){Text("Cancel")}}) }
+        vm.editWord?.let { i->val r=vm.reading!!; AlertDialog(onDismissRequest={vm.editWord=null},title={Text("Mark “${r.passage.tokens[i]}”")},text={Column {listOf("correct" to "Correct","substitution" to "Wrong","omission" to "Skipped","not_reached" to "Not read","repeat" to "Toggle repeated").forEach { (key,label)->TextButton({vm.correct(key)}){Text(label)} };if(!vm.active&&r.marks[i].t0!=null) { val start=r.marks[i].t0!!;val file=vm.store.recordings(r).lastOrNull { (it.nameWithoutExtension.toDoubleOrNull()?:0.0)<=start };if(file!=null) TextButton({playback(file,start-(file.nameWithoutExtension.toDoubleOrNull()?:0.0));vm.editWord=null}){Text("Play from word")} } }},confirmButton={TextButton({vm.editWord=null}){Text("Close")}},shape=RoundedCornerShape(8.dp),containerColor=Chalk,titleContentColor=Ink,textContentColor=Ink) }
+        download?.let { lang->AlertDialog(onDismissRequest={download=null},title={Text("Install ${if(lang=="en") "English" else "Filipino"} model?")},text={Text(if(lang=="en") "Vosk small English 0.15. Apache 2.0. Download about 40 MB; allow 150 MB storage and about 300 MB runtime memory. Downloads from alphacephei.com only. Audio stays on this device." else "Vosk Filipino 0.6 by feddybear. CC BY-NC-SA 4.0, noncommercial use with attribution and share-alike. Download about 320 MB; allow 1 GB free storage and substantial runtime memory. Downloads from alphacephei.com only. Audio stays on this device.")},confirmButton={TextButton({download=null;vm.install(lang,null)}){Text("Download")}},dismissButton={TextButton({download=null}){Text("Cancel")}},shape=RoundedCornerShape(8.dp),containerColor=Chalk,titleContentColor=Ink,textContentColor=Ink) }
     }
 }
