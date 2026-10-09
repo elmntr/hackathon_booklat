@@ -56,7 +56,7 @@ class MainActivity:ComponentActivity() {
 fun Modifier.toggleableCompat(value:Boolean,change:(Boolean)->Unit)=this.clickable { change(!value) }.heightIn(min=48.dp)
 @Composable fun Heading(text:String) { Text(text,fontSize=28.sp,fontWeight=FontWeight.Bold,modifier=Modifier.padding(vertical=8.dp)) }
 @Composable fun Tupi(pose:String="welcome",height:Int=112) { val resource=when(pose){"listening"->R.drawable.tupi_listening;"cheering"->R.drawable.tupi_cheering;"encouraging"->R.drawable.tupi_encouraging;"supportive"->R.drawable.tupi_supportive;"nothing-heard"->R.drawable.tupi_nothing_heard;else->R.drawable.tupi_welcome}; Image(painterResource(resource),"Tupi, Booklat's bookmark",Modifier.height(height.dp).width((height*.85).dp)) }
-@Composable fun Choice(label:String,value:String,options:List<Pair<String,String>>,select:(String)->Unit) { var open by remember { mutableStateOf(false) }; Column { Text(label,fontWeight=FontWeight.SemiBold); Box { OutlinedButton({open=true},shape=RoundedCornerShape(4.dp),modifier=Modifier.heightIn(min=48.dp)){Text(options.find { it.first==value }?.second?:value)}; DropdownMenu(open,{open=false}) { options.forEach { (key,name)->DropdownMenuItem(text={Text(name)},onClick={select(key);open=false}) } } } } }
+@Composable fun Choice(label:String,value:String,options:List<Pair<String,String>>,select:(String)->Unit) { var open by remember { mutableStateOf(false) }; Column { Text(label,fontWeight=FontWeight.SemiBold); OutlinedButton({open=true},shape=RoundedCornerShape(4.dp),modifier=Modifier.heightIn(min=48.dp)){Text(options.find { it.first==value }?.second?:value)} }; if(open) BooklatPopup({open=false}) { Text(label,fontSize=24.sp,fontWeight=FontWeight.Bold,color=Ink);HorizontalDivider(color=Ink);options.forEach { (key,name)->Row(Modifier.fillMaxWidth().heightIn(min=52.dp).clickable { select(key);open=false },verticalAlignment=Alignment.CenterVertically){Text(name,Modifier.weight(1f),fontWeight=if(key==value) FontWeight.Bold else FontWeight.Normal);if(key==value) Text("Selected",fontSize=12.sp,color=Vermilion)};HorizontalDivider(color=Rule) } } }
 @OptIn(ExperimentalLayoutApi::class)
 @Composable fun Booklat(vm:BooklatModel) {
     val context=LocalContext.current
@@ -131,7 +131,17 @@ fun Modifier.toggleableCompat(value:Boolean,change:(Boolean)->Unit)=this.clickab
                                 Heading("Microphone");Action(if(vm.checking) "Stop check" else "Check microphone",!vm.busy){microphone("check")};if(vm.status.isNotBlank()) Text(vm.status)
                                 TextButton({context.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,android.net.Uri.parse("package:${context.packageName}")))}){Text("Android app permissions")}
                                 Heading("Offline models")
-                                for(lang in listOf("en","tl")) { Text("${if(lang=="en") "English" else "Filipino"}: ${if(vm.installed[lang]==true) "Installed" else "Not installed"}",fontWeight=FontWeight.Bold);FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){Action("Download ${if(lang=="en") "English" else "Filipino"}",!vm.busy&&!vm.checking){download=lang};Action("Import ZIP",!vm.busy&&!vm.checking){modelLanguage=lang;modelPicker.launch(arrayOf("application/zip","application/octet-stream"))}} }
+                                for(lang in listOf("en","tl")) {
+                                    Text("${if(lang=="en") "English" else "Filipino"}: ${if(vm.installed[lang]==true) "Installed" else "Not installed"}",fontWeight=FontWeight.Bold)
+                                    FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){Action("Download ${if(lang=="en") "English" else "Filipino"}",!vm.busy&&!vm.checking){download=lang};Action("Import ZIP",!vm.busy&&!vm.checking){modelLanguage=lang;modelPicker.launch(arrayOf("application/zip","application/octet-stream"))}}
+                                    if(vm.installingLanguage==lang) {
+                                        Text(vm.installStage,modifier=Modifier.semantics { liveRegion=LiveRegionMode.Polite })
+                                        val percent=vm.installProgress
+                                        if(percent!=null) LinearProgressIndicator(progress={percent/100f},modifier=Modifier.fillMaxWidth())
+                                        else LinearProgressIndicator(Modifier.fillMaxWidth())
+                                    }
+                                }
+                                if(vm.installingLanguage==null&&vm.installStage=="Model installed. Ready offline.") Text(vm.installStage,color=Green)
                                 Heading("Saved readings");Check("Save completed readings",vm.autosave){vm.autosave=it;vm.preferences()};Check("Save voice recordings",vm.record){vm.record=it;vm.preferences()};Check("History category colors",vm.colors){vm.colors=it;vm.preferences()}
                                 Check("Show speech diagnostics",vm.diagnostics){vm.diagnostics=it};Action("Back"){vm.navigate("setup")}
                             }
@@ -156,7 +166,50 @@ fun Modifier.toggleableCompat(value:Boolean,change:(Boolean)->Unit)=this.clickab
                 }
             } }
         }
-        vm.editWord?.let { i->val r=vm.reading!!; AlertDialog(onDismissRequest={vm.editWord=null},title={Text("Mark “${r.passage.tokens[i]}”")},text={Column {listOf("correct" to "Correct","substitution" to "Wrong","omission" to "Skipped","not_reached" to "Not read","repeat" to "Toggle repeated").forEach { (key,label)->TextButton({vm.correct(key)}){Text(label)} };if(!vm.active&&r.marks[i].t0!=null) { val start=r.marks[i].t0!!;val file=vm.store.recordings(r).lastOrNull { (it.nameWithoutExtension.toDoubleOrNull()?:0.0)<=start };if(file!=null) TextButton({playback(file,start-(file.nameWithoutExtension.toDoubleOrNull()?:0.0));vm.editWord=null}){Text("Play from word")} } }},confirmButton={TextButton({vm.editWord=null}){Text("Close")}},shape=RoundedCornerShape(8.dp),containerColor=Chalk,titleContentColor=Ink,textContentColor=Ink) }
-        download?.let { lang->AlertDialog(onDismissRequest={download=null},title={Text("Install ${if(lang=="en") "English" else "Filipino"} model?")},text={Text(if(lang=="en") "Vosk small English 0.15. Apache 2.0. Download about 40 MB; allow 150 MB storage and about 300 MB runtime memory. Downloads from alphacephei.com only. Audio stays on this device." else "Vosk Filipino 0.6 by feddybear. CC BY-NC-SA 4.0, noncommercial use with attribution and share-alike. Download about 320 MB; allow 1 GB free storage and substantial runtime memory. Downloads from alphacephei.com only. Audio stays on this device.")},confirmButton={TextButton({download=null;vm.install(lang,null)}){Text("Download")}},dismissButton={TextButton({download=null}){Text("Cancel")}},shape=RoundedCornerShape(8.dp),containerColor=Chalk,titleContentColor=Ink,textContentColor=Ink) }
+        vm.editWord?.let { i->val r=vm.reading!!; val start=r.marks[i].t0; val file=if(!vm.active&&start!=null) vm.store.recordings(r).lastOrNull { (it.nameWithoutExtension.toDoubleOrNull()?:0.0)<=start } else null
+            WordMarkDialog(r.passage.tokens[i],r.marks[i].status,{vm.editWord=null},{vm.correct(it)},if(file!=null&&start!=null) {{playback(file,start-(file.nameWithoutExtension.toDoubleOrNull()?:0.0));vm.editWord=null}} else null)
+        }
+        download?.let { lang->ModelDownloadDialog(lang,{download=null},{download=null;vm.install(lang,null)}) }
+    }
+}
+
+@Composable private fun BooklatPopup(onDismiss:()->Unit,content:@Composable ColumnScope.()->Unit) {
+    Dialog(onDismissRequest=onDismiss) {
+        Surface(Modifier.fillMaxWidth().heightIn(max=620.dp),shape=RoundedCornerShape(8.dp),color=Chalk,border=BorderStroke(1.dp,Ink)) {
+            Column(Modifier.verticalScroll(rememberScrollState()).padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp),content=content)
+        }
+    }
+}
+
+@Composable private fun WordMarkDialog(word:String,current:String,onDismiss:()->Unit,onMark:(String)->Unit,onPlay:(()->Unit)?) {
+    BooklatPopup(onDismiss) {
+        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.Top) {
+            Column(Modifier.weight(1f)) { Text("WORD REVIEW",fontSize=12.sp,fontWeight=FontWeight.Bold,color=Vermilion);Text("Mark “$word”",fontSize=26.sp,fontWeight=FontWeight.Bold,color=Ink) }
+            TextButton(onDismiss) { Text("Close") }
+        }
+        HorizontalDivider(color=Ink)
+        listOf("correct" to "Correct","substitution" to "Wrong","omission" to "Skipped","not_reached" to "Not read","repeat" to "Toggle repeated").forEach { (key,label)->
+            val color=when(key){"correct"->Green;"substitution"->Wine;"omission"->Ink;"repeat"->Amber;else->Blue}
+            Row(Modifier.fillMaxWidth().heightIn(min=52.dp).clickable { onMark(key) },verticalAlignment=Alignment.CenterVertically) {
+                Box(Modifier.width(4.dp).height(28.dp).background(color));Spacer(Modifier.width(14.dp))
+                Text(label,Modifier.weight(1f),color=Ink,fontWeight=if(key==current) FontWeight.Bold else FontWeight.Normal)
+                if(key==current) Text("Current",fontSize=12.sp,color=color)
+            }
+            HorizontalDivider(color=Rule)
+        }
+        if(onPlay!=null) OutlinedButton(onPlay,shape=RoundedCornerShape(4.dp),modifier=Modifier.fillMaxWidth()) { Text("Play from word") }
+    }
+}
+
+@Composable private fun ModelDownloadDialog(lang:String,onDismiss:()->Unit,onDownload:()->Unit) {
+    val english=lang=="en"
+    BooklatPopup(onDismiss) {
+        Text("OFFLINE SPEECH",fontSize=12.sp,fontWeight=FontWeight.Bold,color=Vermilion)
+        Text("Install ${if(english) "English" else "Filipino"} model?",fontSize=26.sp,fontWeight=FontWeight.Bold,color=Ink)
+        HorizontalDivider(color=Ink)
+        Text(if(english) "Vosk small English 0.15 · Apache 2.0 · about 40 MB download." else "Vosk Filipino 0.6 by feddybear · CC BY-NC-SA 4.0 · about 314 MB download.",color=Ink)
+        Text(if(english) "Allow about 200 MB free storage and 300 MB memory." else "Allow at least 1.3 GB free storage and substantial memory. Noncommercial use with attribution and share-alike.",color=Ink)
+        Text("Downloads from alphacephei.com. Audio stays on this device.",color=Ink)
+        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically) { TextButton(onDismiss){Text("Cancel")};Spacer(Modifier.width(8.dp));Action("Download",onClick=onDownload) }
     }
 }
