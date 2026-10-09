@@ -19,6 +19,7 @@ class BooklatModel(app:Application):AndroidViewModel(app) {
     var busy by mutableStateOf(false); var active by mutableStateOf(false); var checking by mutableStateOf(false); var message by mutableStateOf(""); var status by mutableStateOf("")
     var elapsed by mutableIntStateOf(0); var level by mutableIntStateOf(0); var transcript by mutableStateOf("")
     var revision by mutableIntStateOf(0); var installed by mutableStateOf(mapOf("en" to false,"tl" to false))
+    var installingLanguage by mutableStateOf<String?>(null); var installStage by mutableStateOf(""); var installProgress by mutableStateOf<Int?>(null)
     var mode by mutableStateOf(prefs.getString("mode","live")!!); var delay by mutableIntStateOf(prefs.getInt("delay",2))
     var autosave by mutableStateOf(prefs.getBoolean("autosave",true)); var record by mutableStateOf(prefs.getBoolean("record",true)); var follow by mutableStateOf(prefs.getBoolean("follow",true)); var colors by mutableStateOf(prefs.getBoolean("colors",true)); var diagnostics by mutableStateOf(false)
     var full by mutableStateOf(false); var focused by mutableStateOf(false); var size by mutableStateOf("32"); var editWord by mutableStateOf<Int?>(null)
@@ -31,12 +32,34 @@ class BooklatModel(app:Application):AndroidViewModel(app) {
     fun navigate(to:String) { if(active||checking) stop(); screen=to; prefs.edit().putString("screen",to).apply() }
     fun select(p:Passage) { selected=p; preferences() }
     fun install(lang:String,uri:Uri?)=task {
-        status="Installing ${if(lang=="en") "English" else "Filipino"} model…"
-        withContext(Dispatchers.IO) {
-            if(uri!=null) getApplication<Application>().contentResolver.openInputStream(uri)!!.use { Models.install(getApplication(),lang,it) }
-            else { val connection=java.net.URL("https://alphacephei.com/vosk/models/${Models.names.getValue(lang)}.zip").openConnection().apply { connectTimeout=30000; readTimeout=30000 }; connection.getInputStream().use { Models.install(getApplication(),lang,it) } }
+        installingLanguage=lang;installStage="Preparing model…";installProgress=null
+        try {
+            withContext(Dispatchers.IO) {
+                val app=getApplication<Application>()
+                if(uri!=null) {
+                    withContext(Dispatchers.Main){installStage="Installing ZIP…"}
+                    app.contentResolver.openInputStream(uri)?.use { Models.install(app,lang,it) }?:error("Could not open the selected ZIP.")
+                } else {
+                    val archive=File(app.filesDir,"downloads/${Models.names.getValue(lang)}.zip")
+                    val needed=if(lang=="tl") 1_300_000_000L-archive.length() else 200_000_000L-archive.length()
+                    require(android.os.StatFs(app.filesDir.path).availableBytes>needed){"Not enough free storage. ${if(lang=="tl") "Filipino needs about 1.3 GB" else "English needs about 200 MB"} to download and install."}
+                    val url=java.net.URL("https://alphacephei.com/vosk/models/${Models.names.getValue(lang)}.zip")
+                    var shown=-1
+                    withContext(Dispatchers.Main){installStage="Downloading ${if(lang=="en") "English" else "Filipino"}…"}
+                    Models.download(url,archive) { bytes,total->
+                        val percent=(bytes*100/total).toInt().coerceIn(0,100)
+                        if(percent!=shown) { shown=percent;runBlocking(Dispatchers.Main){installProgress=percent} }
+                    }
+                    withContext(Dispatchers.Main){installStage="Unpacking and checking model…";installProgress=null}
+                    archive.inputStream().use { Models.install(app,lang,it) }
+                    archive.delete()
+                }
+            }
+            installed=Models.names.keys.associateWith { Models.installed(getApplication(),it) }
+            installStage="Model installed. Ready offline."
+        } finally {
+            installingLanguage=null;installProgress=null
         }
-        installed=Models.names.keys.associateWith { Models.installed(getApplication(),it) }; status="Model installed. Ready offline."
     }
     fun open(r:Reading) { reading=r; displayed=r.marks.map { it.copy() }; pointer=r.score.attempted; navigate("results"); prefs.edit().putString("result",r.id).apply(); revision++ }
     fun discard()=task { withContext(Dispatchers.IO){store.draft()?.let { d->if(store.history().none { it.id==d.id }) store.deleteRecordings(d) };store.clearDraft()}; draft=null }

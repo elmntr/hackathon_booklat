@@ -6,8 +6,11 @@ import org.vosk.Model
 import org.vosk.Recognizer
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.RandomAccessFile
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.zip.ZipInputStream
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -15,6 +18,43 @@ object Models {
     val names=mapOf("en" to "vosk-model-small-en-us-0.15","tl" to "vosk-model-tl-ph-generic-0.6")
     fun directory(c:Context,lang:String)=File(c.filesDir,"models/${names.getValue(lang)}")
     fun installed(c:Context,lang:String)=File(directory(c,lang),"am/final.mdl").isFile
+    fun download(url:URL,file:File,onProgress:(Long,Long)->Unit) {
+        file.parentFile?.mkdirs()
+        var failure:Exception?=null
+        repeat(4) { attempt->
+            val start=file.length()
+            val connection=(url.openConnection() as HttpURLConnection).apply {
+                connectTimeout=30000; readTimeout=60000; instanceFollowRedirects=true
+                if(start>0) setRequestProperty("Range","bytes=$start-")
+            }
+            try {
+                val code=connection.responseCode
+                if(code==416) {
+                    val total=connection.getHeaderField("Content-Range")?.substringAfter("*/")?.toLongOrNull()
+                    if(total!=null&&start==total) { onProgress(start,total);return }
+                    file.delete()
+                    throw java.io.IOException("Saved download no longer matches the server; restarting.")
+                }
+                require(code==200||code==206){"Model download failed (HTTP $code)."}
+                val range=connection.getHeaderField("Content-Range")
+                val resumed=code==206&&range?.startsWith("bytes $start-")==true
+                if(code==206&&!resumed) { file.delete();throw java.io.IOException("Model server returned an invalid download range.") }
+                val total=if(resumed) range!!.substringAfter('/').toLongOrNull()?:-1L else connection.contentLengthLong
+                require(total in 1..(1024L*1024*1024)){"Model download size is unavailable or too large."}
+                if(!resumed) file.writeBytes(byteArrayOf())
+                connection.inputStream.use { input->FileOutputStream(file,true).use { out->
+                    val buffer=ByteArray(65536);var saved=file.length();onProgress(saved,total)
+                    while(true) { val n=input.read(buffer);if(n<0) break;out.write(buffer,0,n);saved+=n;onProgress(saved,total) }
+                } }
+                if(file.length()!=total) throw java.io.IOException("Model download stopped early.")
+                return
+            } catch(e:java.io.IOException) {
+                failure=e
+                if(attempt==3) throw java.io.IOException("Download interrupted. Tap Download to resume (${e.message}).",e)
+            } finally { connection.disconnect() }
+        }
+        throw failure?:java.io.IOException("Model download failed.")
+    }
     fun install(c:Context,lang:String,input:InputStream) {
         val dest=directory(c,lang); val staging=File(dest.parentFile,"install-${java.util.UUID.randomUUID()}"); staging.mkdirs()
         try {
@@ -25,8 +65,6 @@ object Models {
                 if(entry.isDirectory) file.mkdirs() else { file.parentFile!!.mkdirs(); file.outputStream().use { out-> val buffer=ByteArray(65536); while(true) { val n=zip.read(buffer); if(n<0) break; total+=n; require(total<=2L*1024*1024*1024){"Model exceeds 2 GB."}; out.write(buffer,0,n) } } }
             } }
             val modelRoot=staging.walkTopDown().maxDepth(3).firstOrNull { it.isDirectory&&File(it,"am/final.mdl").isFile&&File(it,"conf/model.conf").isFile }?:error("ZIP does not contain a Vosk model.")
-            // Validate with the actual native engine before replacing an installed model.
-            Model(modelRoot.path).close()
             val previous=File(dest.parentFile,"${dest.name}.previous"); previous.deleteRecursively()
             if(dest.exists()) check(dest.renameTo(previous)){"Cannot replace model."}
             if(!modelRoot.renameTo(dest)) { previous.renameTo(dest); error("Cannot install model.") }; previous.deleteRecursively()
