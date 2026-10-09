@@ -1026,10 +1026,6 @@ textarea {
   background: var(--pro-bg);
   border-bottom: 3px solid var(--focus);
 }
-.w.playing {
-  outline: 3px solid var(--focus);
-  outline-offset: var(--space-1);
-}
 .passage-search {
   display: flex;
   gap: var(--space-2);
@@ -1600,6 +1596,22 @@ body:has(dialog[open]) {
 #custom-passage-size{width:96px;min-width:0}
 input[type="number"]{appearance:textfield;-moz-appearance:textfield}
 input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+
+.results-review-toolbar{margin-top:var(--space-6)}
+.results-review-toolbar #expand-results{margin-left:auto;background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.recording-panel{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-3)}
+.recording-panel h2,.recording-panel p{margin:0}
+.recording-panel p:empty{display:none}
+.recording-selector{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)}
+.recording-selector select{flex:1;min-width:0}
+.recording-panel .actions{justify-content:flex-end;margin-top:var(--space-3)}
+.recording-panel audio{margin:0}
+#playback-word{display:none}
+.grading-panel{margin-top:var(--space-8)}
+.grading-panel .library-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4)}
+@media(max-width:767px){.grading-panel .library-grid{grid-template-columns:1fr}.recording-selector{flex-wrap:wrap}.recording-panel .actions{justify-content:flex-start;flex-wrap:wrap}.recording-panel .actions button{white-space:normal}}
+
+#completion-message:empty,#philiri-status:empty,#breakdown:empty,#score-status:empty,#review-count:empty{display:none}
 </style>
 </head>
 <body>
@@ -1656,7 +1668,7 @@ input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-ou
 <div class="reading-top"><div><span class="eyebrow" id="reading-learner"></span><h1 id="reading-title"></h1></div><div class="actions"><span id="timer" class="clock">00:00</span><span id="latency" class="chip">Marking delay: :</span><button id="stop" class="danger">Stop</button></div></div>
 <div class="listening-row"><svg class="mascot listening" data-pose="listening" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 82 24 75 M89 82 107 60 103 49 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M59 81q8 9 16 0"/></svg><p id="listening-status" class="status" aria-live="polite">Quiet for a moment…</p></div>
 <div id="connection-error" class="banner" role="alert" hidden><p id="connection-message">Connection to the local server was lost</p><div class="actions"><button id="recover-results">Go to results</button><button id="restart">Start over</button></div></div>
-<p id="reading-progress" class="hint" role="status">0 words confirmed</p><progress id="reading-progress-bar" value="0" max="1" aria-label="Confirmed reading progress" class="reading-progress-bar"></progress><button id="keep-reading" type="button" hidden>Keep reading · cancel finish</button><div class="passage-toolbar"><button id="projector-reading" type="button" aria-haspopup="dialog">Projector mode</button><button id="expand-reading" class="icon-button" type="button" data-expand="reading" aria-haspopup="dialog" aria-label="Expand passage" title="Expand passage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-expand"></use></svg></button></div><div id="reading-passage" class="card passage" aria-label="Reading passage"></div>
+<p id="reading-progress" class="hint" role="status">0 words confirmed</p><progress id="reading-progress-bar" value="0" max="1" aria-label="Confirmed reading progress" class="reading-progress-bar"></progress><button id="keep-reading" type="button" hidden>Keep reading · cancel finish</button><div class="passage-toolbar"><button id="expand-reading" class="icon-button" type="button" data-expand="reading" aria-haspopup="dialog" aria-label="Expand passage" title="Expand passage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-expand"></use></svg></button></div><div id="reading-passage" class="card passage" aria-label="Reading passage"></div>
 <div id="reading-legend" class="legend"><span>✓ correct</span><span>✗ wrong</span><span>⊘ skipped</span><span>↻ repeated</span><span>◌ dotted outline: provisional, may change</span></div><p id="validation-hint" class="honesty">Word marks appear as speech is recognized. Dotted marks may change as you continue reading. Tap any word to correct it.</p>
 </section>
 <section id="results-screen" hidden>
@@ -1664,7 +1676,7 @@ input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-ou
 <p id="score-status" class="status" role="status"></p><div id="score-error" class="banner" role="alert" hidden><p id="score-message"></p><button id="retry-score">Retry scoring</button></div>
 <div id="no-speech" class="note" hidden>No speech was detected. <button id="try-again">Try again</button></div>
 <div class="tiles"><div class="card tile"><small>Time</small><div id="result-time" class="value">n/a</div></div><div class="card tile"><small>Words per minute</small><div id="result-wpm" class="value">n/a</div></div><div class="card tile"><small>Accuracy</small><div id="result-accuracy" class="value">n/a</div></div><div class="card tile"><small>App word-reading category</small><div id="result-level" class="value">n/a</div><div class="report-companion pose pose-wait"><svg class="mascot nothing-heard" data-pose="nothing-heard" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 82 23 76 16 79 M89 82 105 75 116 78 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M61 82q6 4 12 0"/></svg></div><div class="report-companion pose pose-cheer"><svg class="mascot cheering" data-pose="cheering" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 80 23 48 M89 80 109 43 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><path class="ink" d="M53 69q4-7 8 0 M72 69q4-7 8 0"/><path class="ink" d="M59 81q8 9 16 0"/></svg></div><div class="report-companion pose pose-encourage"><svg class="mascot encouraging" data-pose="encouraging" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 82 23 75 M89 80 111 73 119 78 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M59 81q8 9 16 0"/></svg></div><div class="report-companion pose pose-support"><svg class="mascot supportive" data-pose="supportive" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 82 28 92 M89 82 100 94 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M59 81q8 9 16 0"/></svg></div></div></div>
-<section id="recording-panel" class="card recording-panel"><h2>Voice recording</h2><p id="recording-message" class="hint" role="status"></p><div id="recording-controls" hidden><label for="recording-segment">Recording portion</label><select id="recording-segment"></select><audio id="recording-player" controls preload="metadata" class="recording-player"></audio><p id="playback-word" class="hint" aria-live="off"></p><div class="actions"><a id="download-recording" class="button" download="reading.wav">Download WAV</a><button id="delete-recording" type="button">Delete saved voice recording</button></div></div></section><section class="card grading-panel"><h2>Teacher grading</h2><p id="philiri-status" class="note" role="status"></p><div class="table-wrap"><table><thead><tr><th>Level</th><th>Word recognition</th><th>Comprehension</th><th>Meaning</th></tr></thead><tbody id="rubric-body"></tbody></table></div><p id="philiri-scores"></p><p id="philiri-calculation" class="hint"></p><form id="grading-form"><div class="library-grid"><div class="field"><label for="reviewed-miscues">Teacher-reviewed total miscues (optional)</label><input id="reviewed-miscues" type="number" min="0" max="100000" step="1"></div><div class="field"><label for="comprehension-correct">Comprehension: correct answers</label><input id="comprehension-correct" type="number" min="0" max="1000" step="1"></div><div class="field"><label for="comprehension-total">Comprehension: questions administered</label><input id="comprehension-total" type="number" min="1" max="1000" step="1"></div></div><button type="submit">Apply grading scores</button></form><p id="rubric-source" class="hint"></p></section><p id="breakdown" class="breakdown"></p><p id="partial" class="note" hidden>Stopped before the end of the passage.</p><p id="completion-message" class="note" role="status"></p><div class="actions"><label for="review-filter">Review words</label><select id="review-filter" class="review-filter"><option value="all">All words</option><option value="substitution">Wrong</option><option value="omission">Skipped</option><option value="repeated">Repeated</option><option value="not_reached">Not read</option></select></div><p id="review-count" class="hint"></p><div class="passage-toolbar"><button id="expand-results" class="icon-button" type="button" data-expand="results" aria-haspopup="dialog" aria-label="Expand passage" title="Expand passage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-expand"></use></svg></button></div><div id="results-passage" class="card passage" aria-label="Editable reading results"></div><div class="legend" aria-label="Result marks"><span>✓ correct</span><span>✗ wrong</span><span>⊘ skipped</span><span>↻ repeated</span><span>Unmarked: not read</span></div>
+<p id="breakdown" class="breakdown"></p><p id="partial" class="note" hidden>Stopped before the end of the passage.</p><p id="completion-message" class="note" role="status"></p><div class="actions results-review-toolbar"><label for="review-filter">Review words</label><select id="review-filter" class="review-filter"><option value="all">All words</option><option value="substitution">Wrong</option><option value="omission">Skipped</option><option value="repeated">Repeated</option><option value="not_reached">Not read</option></select><button id="expand-results" class="icon-button" type="button" data-expand="results" aria-haspopup="dialog" aria-label="Expand passage" title="Expand passage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-expand"></use></svg></button></div><p id="review-count" class="hint"></p><div id="results-passage" class="card passage" aria-label="Editable reading results"></div><div class="legend" aria-label="Result marks"><span>✓ correct</span><span>✗ wrong</span><span>⊘ skipped</span><span>↻ repeated</span><span>Unmarked: not read</span></div><section id="recording-panel" class="card recording-panel"><h2>Voice recording</h2><p id="recording-message" class="hint" role="status"></p><div id="recording-controls" hidden><div id="recording-selector" class="recording-selector"><label for="recording-segment">Recording portion</label><select id="recording-segment"></select></div><audio id="recording-player" controls preload="metadata" class="recording-player"></audio><p id="playback-word" class="hint" aria-live="off"></p><div class="actions"><a id="download-recording" class="button" download="reading.wav">Download WAV</a><button id="delete-recording" type="button">Delete recording</button></div></div></section><section class="card grading-panel"><h2>Teacher grading</h2><p id="philiri-status" class="note" role="status"></p><div class="table-wrap"><table><thead><tr><th>Level</th><th>Word recognition</th><th>Comprehension</th><th>Meaning</th></tr></thead><tbody id="rubric-body"></tbody></table></div><p id="philiri-scores"></p><p id="philiri-calculation" class="hint"></p><form id="grading-form"><div class="library-grid"><div class="field"><label for="reviewed-miscues">Teacher-reviewed total miscues (optional)</label><input id="reviewed-miscues" type="number" min="0" max="100000" step="1"></div><div class="field"><label for="comprehension-correct">Comprehension: correct answers</label><input id="comprehension-correct" type="number" min="0" max="1000" step="1"></div><div class="field"><label for="comprehension-total">Comprehension: questions administered</label><input id="comprehension-total" type="number" min="1" max="1000" step="1"></div></div><button type="submit">Apply grading scores</button></form><p id="rubric-source" class="hint"></p></section>
 <div class="actions result-actions"><button id="save" class="primary">Save result</button><a class="button" href="/api/export.csv" download>Download CSV</a><button id="next-section" hidden>Next book section</button><a id="download-grade-report" class="button" hidden download>Download grading report</a><button id="new-reading">New reading</button></div>
 </section>
 <details id="debug-panel" class="card speech-diagnostics" hidden open>
@@ -1862,7 +1874,7 @@ function paint(indices = null) {
     const idx = Number(span.dataset.idx), mark = displayedMark(idx);
     const provisional=session.validation_mode==='live'&&screen==='reading'&&session.provisional?.has(idx)&&!session.locked.has(idx);
     const highlighting=screen==='reading'&&session.validation_mode==='after_pause'&&(session.provisional?.has(idx)||idx===Math.max(0,session.pointer-1)&&session.pointer>0);
-    span.className = 'w '+mark.status+(mark.repeats?' repeated':'')+(screen==='reading'&&idx===session.pointer?' pointer':'')+(selected===idx?' selected':'')+(mark.self_corrected?' self-corrected':'')+(provisional?' provisional':'')+(highlighting?' read-highlight':'')+(screen==='results'&&idx===playbackIndex?' playing':'');
+    span.className = 'w '+mark.status+(mark.repeats?' repeated':'')+(screen==='reading'&&idx===session.pointer?' pointer':'')+(selected===idx?' selected':'')+(mark.self_corrected?' self-corrected':'')+(provisional?' provisional':'')+(highlighting?' read-highlight':'');
     span.hidden=screen==='results'&&!reviewMatches(mark);
     span.textContent = session.passage.tokens[idx];
     span.title=`Expected: ${session.passage.tokens[idx]} · Heard: ${mark.heard || '(none)'}${mark.t0!=null?' · '+mark.t0.toFixed(2)+'–'+(mark.t1??mark.t0).toFixed(2)+'s':''}`;
@@ -2082,7 +2094,8 @@ function setupPlayback(){
   const choices=recordings.map(r=>({...r,url:`/api/results/${encodeURIComponent(session.id)}/recordings/${encodeURIComponent(r.segment_id)}`,saved:true}));
   if(session.audioBlob&&!session.audioSaved){playbackUrl=URL.createObjectURL(session.audioBlob);choices.push({url:playbackUrl,time_offset:session.timeOffset||0,duration:session.audioBytes/32000,saved:false});}
   session.playbackChoices=choices;$('recording-controls').hidden=!choices.length;
-  $('recording-message').textContent=choices.length?(session.audioTruncated?'Recording limit reached; audio covers only the beginning. ':'' )+'Play or seek to follow timestamped words. Word times are recognition estimates; skipped words have no spoken audio.'+(choices.some(r=>r.time_offset>0)?' Recovered readings may have gaps: this recording starts at its displayed passage time.':''):(session.draftReview?'This recovered draft has no retained audio. New audio can be recorded when continuing.':'No voice recording is available for this reading. Enable recording before starting a new reading.');
+  $('recording-selector').hidden=choices.length<=1;
+  $('recording-message').textContent=choices.length?(session.audioTruncated?'Recording covers only the beginning.':''):(session.draftReview?'This draft has no saved recording.':'No recording saved.');
   for(const [i,r] of choices.entries()){const option=document.createElement('option');option.value=String(i);option.textContent=`Portion ${i+1} · starts ${r.time_offset.toFixed(2)}s · ${r.duration.toFixed(1)}s${r.saved?' · saved offline':' · save result to keep audio'}`;$('recording-segment').append(option);}
   $('delete-recording').hidden=!recordings.length;
   if(choices.length){$('recording-segment').value=String(choices.length-1);selectRecording();}
@@ -2096,10 +2109,8 @@ function updatePlayback(){
   if(!session||screen!=='results')return;
   const time=$('recording-player').currentTime+playbackOffset;
   const matches=session.marks.filter(m=>m.t0!=null&&m.t1!=null&&time>=m.t0&&time<m.t1);
-  const mark=matches.at(-1),previous=playbackIndex;playbackIndex=mark?.idx??-1;
-  if(previous!==playbackIndex)paint([previous,playbackIndex]);
+  const mark=matches.at(-1);playbackIndex=mark?.idx??-1;
   $('playback-word').textContent=mark?`${time.toFixed(2)}s · Expected: ${session.passage.tokens[mark.idx]} · Heard: ${mark.heard||'(none)'} · ${mark.status.replace('_',' ')}${mark.repeats?' · repeated '+mark.repeats+' time(s)':''}`:`${time.toFixed(2)}s · No word matched at this instant`;
-  if(mark&&$('follow-line').checked&&previous!==playbackIndex){const span=passageSpans.get($('results-passage'))?.[mark.idx];if(span&&!span.hidden){const box=span.getBoundingClientRect();if(box.top<80||box.bottom>innerHeight-100)span.scrollIntoView({block:'center',behavior:'auto'});}}
 }
 function playbackTick(){updatePlayback();if(!$('recording-player').paused&&!$('recording-player').ended)playbackFrame=requestAnimationFrame(playbackTick);}
 $('play-word').onclick=async()=>{
@@ -2112,7 +2123,7 @@ $('play-word').onclick=async()=>{
 };
 $('recording-player').addEventListener('play',()=>{cancelAnimationFrame(playbackFrame);playbackTick();});
 for(const type of ['timeupdate','seeked','loadedmetadata'])$('recording-player').addEventListener(type,updatePlayback);
-$('recording-player').addEventListener('ended',()=>{cancelAnimationFrame(playbackFrame);const previous=playbackIndex;playbackIndex=-1;paint([previous]);});
+$('recording-player').addEventListener('ended',()=>{cancelAnimationFrame(playbackFrame);playbackIndex=-1;});
 $('recording-player').addEventListener('error',()=>{$('recording-message').textContent='Recording could not be loaded. Reopen the saved reading or retry saving its audio.';});
 $('recording-segment').onchange=selectRecording;$('record-voice').onchange=savePreferences;
 $('delete-recording').onclick=async()=>{
@@ -2287,7 +2298,6 @@ function setProjectorMode(enabled){
   if(enlargedPassage){enlargedPassage.inert=projectorMode;if(projectorMode)enlargedPassage.setAttribute('aria-hidden','true');else enlargedPassage.removeAttribute('aria-hidden');}
   if(projectorMode){$('large-passage-body').scrollTop=0;measureProjectorLines();}else{projectorLines=[];projectorLineIndex=-1;$('projector-line').replaceChildren();if(enlargedPassage?.id==='reading-passage'){lastFollowed=-1;updateProgress();}}
 }
-$('projector-reading').onclick=()=>{openPassageView('reading',$('projector-reading'));setProjectorMode(true);};
 $('toggle-projector').onclick=()=>setProjectorMode(!projectorMode);
 window.addEventListener('resize',()=>{if(projectorMode)measureProjectorLines();});
 function openPassageView(kind,trigger){

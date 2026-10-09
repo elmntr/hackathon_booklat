@@ -62,3 +62,5 @@ Full passage text size accepts any positive number of pixels, with no upper cap.
 Book-section creation is removed from the import section. Text size uses the original preset dropdown plus Custom, which reveals a plain decimal text field with no spinner. Remaining numeric form controls also omit spinner arrows.
 
 Booklat uses light mode only. System dark-mode preferences do not change its palette or native form controls.
+
+Reading has one expand action; focused-line projection remains available inside the full view. Results prioritize scores and the editable passage, followed by recording and teacher grading. Audio playback never highlights, repaints or scrolls the results passage. Recording selection appears only when multiple portions exist.
