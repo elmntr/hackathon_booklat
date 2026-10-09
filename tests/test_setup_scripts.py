@@ -27,6 +27,7 @@ exit 0
 '''
 
 
+@unittest.skipIf(os.name == "nt", "POSIX setup scripts require a POSIX host; Windows uses setup-windows.cmd")
 class SetupScriptsTest(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
