@@ -10,8 +10,7 @@ See [Windows setup and hardware comparison](WINDOWS.md). Use `setup-windows.cmd`
 
 Booklat now offers **Vosk · live streaming trial** and **Whisper · original comparison** in the Setup screen. Vosk is an optional dependency with separate local English and Filipino models. Prepare it once while online, using the existing project environment:
 
-```zsh
-cd /home/justin/Code/booklat
+```bash
 ./scripts/setup_vosk.sh
 ./run.sh
 ```
@@ -26,18 +25,25 @@ For a fair trial, read each passage cleanly, then with a deliberate skip and rep
 
 To replay the same manually recorded clip through both engines:
 
-```zsh
+```bash
 .venv/bin/python scripts/replay_clip.py clips/tl_clean.wav tl-g3-1 --engine vosk --realtime
 .venv/bin/python scripts/replay_clip.py clips/tl_clean.wav tl-g3-1 --engine whisper --realtime
 ```
 
 The original Whisper setup remains below. You can select it any time for comparison; no Whisper files or saved results are removed.
 
-## Quick start (Arch Linux / zsh)
+## Quick start (Linux Mint / Bash)
 
-From this project folder, run these three commands. The first needs internet and downloads the **small** Whisper model once. `uv` must be installed (`sudo pacman -S uv` if needed). Setup uses a project-local `.venv` and never installs into system Python.
+Install the system packages once in Terminal:
 
-```zsh
+```bash
+sudo apt update
+sudo apt install python3 python3-venv python3-pip alsa-utils git curl xdg-utils
+```
+
+From this project folder, run the commands below. Setup needs internet and downloads the **small** Whisper model once. It needs Python 3.10 or newer and uses Python's built-in `venv` with project-local pip. It never installs into system Python.
+
+```bash
 ./scripts/setup.sh
 ./run.sh
 # In another terminal:
@@ -46,13 +52,15 @@ xdg-open http://localhost:8000
 
 Use Chrome or Brave, allow microphone access, and wait for **Speech model ready**. Enter a learner name, select a passage, and click **Start reading**. Remain quiet during the first second of noise calibration; begin at **Listening. Begin reading.** Click **Stop** or press Space to finish. Tap a word to correct its mark, then click **Save result**. After additional edits, click **Save changes**.
 
+Select **Whisper · original comparison** after the base setup. The default Vosk selection requires `./scripts/setup_vosk.sh` as well. Open `http://localhost:8000` while the server is running; opening `web/index.html` directly cannot load the API.
+
 The server binds only to `127.0.0.1`. After setup, `./run.sh` runs with offline mode enabled, and model loading additionally uses cached files only. A missing model displays a recoverable message. Model initialization can take a little time on a CPU.
 
 ## Tests
 
 No microphone or model is needed:
 
-```zsh
+```bash
 .venv/bin/python -m pytest -q
 ```
 
@@ -62,7 +70,7 @@ Tests cover alignment, scoring, audio chunking, API validation, atomic save repl
 
 With `alsa-utils` installed, record a short test clip. Ctrl+C ends recording. Only this deliberate manual recording creates an audio file; the app does not.
 
-```zsh
+```bash
 arecord -f S16_LE -r 16000 -c 1 clips/en_clean.wav
 # Start ./run.sh in another terminal first:
 .venv/bin/python scripts/replay_clip.py clips/en_clean.wav en-g3-1
