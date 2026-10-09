@@ -6,1150 +6,927 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='%68%74%74%70%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox='0%200%2064%2064'%3E%3Cpath%20fill='%23a33a26'%20d='M16%204h24l9%2012v44L32%2048%2016%2060Z'/%3E%3Cpath%20fill='%23f4b39d'%20d='M40%204v14h9Z'/%3E%3C/svg%3E">
 <title>Booklat · Offline oral-reading assessor</title>
 <style>
-:root {
-  color-scheme: light dark;
-  --bg: #eef1ed;
-  --surface: #fafbf8;
-  --ink: #252c2a;
-  --muted: #53605a;
-  --line: #7e8982;
-  --rule: #d7ded7;
-  --primary: #a33a26;
-  --primary-ink: #fafbf8;
-  --peach: #f4b39d;
-  --fold: #d77558;
-  --focus: #174f94;
-  --ok-bg: #dcebdd;
-  --ok-ink: #245330;
-  --bad-bg: #f5dde6;
-  --bad-ink: #872449;
-  --skip-bg: #e2e5e5;
-  --skip-ink: #4c5555;
-  --rep-bg: #f2e7b9;
-  --rep-ink: #68500c;
-  --pro-bg: #e0eafb;
-  --pro-ink: #254b7e;
-  --lvl-ind: #245330;
-  --lvl-ind-bg: #dcebdd;
-  --lvl-ins: #68500c;
-  --lvl-ins-bg: #f2e7b9;
-  --lvl-fru: #5c3b77;
-  --lvl-fru-bg: #ece1f4;
-  --radius-control: 12px;
-  --radius-surface: 20px;
-  --radius-word: 4px;
-  --layer-sticky: 1;
-  --layer-menu: 2;
-  --layer-editor: 3;
-  --layer-message: 4;
-  --radius-message: 16px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-  --space-20: 80px;
-  --space-24: 96px;
-  --display: "Trebuchet MS",Verdana,system-ui,sans-serif;
-  --reader: Georgia,"Times New Roman",serif;
-  font: 18px system-ui,"Segoe UI",sans-serif;
-  color: var(--ink);
-  background: var(--bg);
-}
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 0;
-  min-width: 0;
-}
-button,input,select {
-  font: inherit;
-}
-button,.button {
-  min-height: 48px;
-  padding: var(--space-3) var(--space-5);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--ink);
-  font-size: .85rem;
-  font-weight: 650;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  white-space: nowrap;
-}
-button:hover,.button:hover {
-  border-color: var(--primary);
-  background: var(--bg);
-}
-button:disabled {
-  cursor: not-allowed;
-  background: var(--rule);
-  color: var(--muted);
-  border-color: var(--line);
-}
-.primary {
-  background: var(--primary);
-  color: var(--primary-ink);
-  border-color: var(--primary);
-}
-.primary:hover {
-  background: var(--primary);
-  text-decoration: underline;
-}
-.danger {
-  background: var(--bad-ink);
-  color: var(--surface);
-  border-color: var(--bad-ink);
-}
-.danger:hover {
-  background: var(--bad-ink);
-  text-decoration: underline;
-}
-:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: var(--space-1);
-}
-[hidden] {
-  display: none!important;
-}
-.brand {
-  display: flex;
-  gap: var(--space-5);
-  align-items: center;
-}
-.wordmark {
-  font-family: var(--display);
-  font-size: 2.1rem;
-  font-weight: 900;
-  letter-spacing: -.08em;
-  line-height: 1.1;
-  color: var(--primary);
-}
-.wordmark .turn {
-  display: inline-block;
-  transform: rotate(-9deg);
-  border-bottom: .08em solid currentColor;
-}
-.wordmark .lat {
-  color: var(--ink);
-}
-.chip {
-  font-size: .72rem;
-  color: var(--muted);
-  padding: var(--space-1) 0;
-  white-space: nowrap;
-}
-main {
-  max-width: 1280px;
-  margin: auto;
-  padding: var(--space-8) var(--space-10) var(--space-24);
-}
-h1,h2 {
-  font-family: var(--display);
-}
-h1 {
-  font-size: clamp(2rem,4vw,3.4rem);
-  font-weight: 800;
-  letter-spacing: -.055em;
-  line-height: 1.08;
-  margin: 0 0 var(--space-3);
-}
-h2 {
-  font-size: 1.2rem;
-  letter-spacing: -.035em;
-  margin: 0 0 var(--space-5);
-}
-p {
-  line-height: 1.6;
-}
-.muted,.hint,.eyebrow {
-  font-size: .85rem;
-  font-weight: 600;
-}
-.intro {
-  display: grid;
-  grid-template-columns: 1fr 185px;
-  align-items: center;
-  gap: var(--space-6);
-  margin-bottom: var(--space-5);
-}
-.welcome {
-  --tupi-width: 115px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: var(--space-6);
-}
-.welcome .mascot {
-  width: var(--tupi-width);
-  height: 140px;
-}
-.card {
-  background: var(--surface);
-  border-radius: var(--radius-surface);
-}
-.setup-grid {
-  display: grid;
-  grid-template-columns: minmax(280px,.8fr) minmax(0,1.4fr);
-  gap: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-surface);
-  overflow: visible;
-  position: relative;
-}
-.field {
-  display: grid;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-}
-label {
-  font-size: .8rem;
-  font-weight: 650;
-}
-input,select {
-  min-height: 50px;
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--ink);
-  font-size: .85rem;
-}
-.start {
-  width: 100%;
-  margin-top: var(--space-2);
-}
-.hint {
-  font-size: .72rem;
-  line-height: 1.6;
-  min-height: 1.5em;
-  overflow-wrap: anywhere;
-  margin-bottom: 0;
-}
-.preview {
-  padding: var(--space-6) var(--space-10) var(--space-8);
-  border-left: 1px solid var(--rule);
-  border-top: 1px solid var(--rule);
-  border-radius: 0 var(--radius-surface) var(--radius-surface) 0;
-  background: var(--surface);
-  min-width: 0;
-}
-.preview .eyebrow {
-  display: block;
-  color: var(--muted);
-  font-weight: 400;
-  margin-bottom: var(--space-4);
-}
-.preview h2 {
-  font-size: 1.8rem;
-  line-height: 1.2;
-  margin-bottom: var(--space-4);
-}
-.recent {
-  margin-top: var(--space-8);
-}
-.section-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-3);
-}
-.section-top h2 {
-  margin: 0;
-}
-.table-wrap {
-  overflow: auto;
-  border-top: 2px solid var(--ink);
-  padding: var(--space-1) var(--space-4);
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: .85rem;
-}
-th,td {
-  padding: var(--space-4) var(--space-2);
-  border-bottom: 1px solid var(--rule);
-}
-th {
-  font-size: .75rem;
-  color: var(--muted);
-  font-weight: 600;
-}
-tbody tr:last-child td {
-  border-bottom: 0;
-}
-.empty {
-  padding: var(--space-6) var(--space-3);
-  color: var(--muted);
-  font-size: .85rem;
-}
-.reading-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-6);
-  border-bottom: 1px solid var(--line);
-  padding-bottom: var(--space-4);
-}
-.reading-top h1 {
-  font-size: 2rem;
-  margin: var(--space-2) 0 0;
-}
-.actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-.clock {
-  font-size: 1.8rem;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-}
-.listening-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  min-height: 85px;
-}
-.listening-row .mascot {
-  width: 54px;
-  height: 70px;
-  flex: none;
-}
-.status {
-  font-size: .85rem;
-  color: var(--muted);
-  font-weight: 600;
-  margin: var(--space-3) 0;
-}
-.passage {
-  font-family: var(--reader);
-  font-size: clamp(1.8rem,3vw,2.6rem);
-  line-height: 1.95;
-  padding: var(--space-8) var(--space-10);
-  border: 1px solid var(--line);
-  border-top: 5px solid var(--ink);
-  overflow-wrap: anywhere;
-}
-:is(.w,.demo-word) {
-  display: inline-block;
-  min-height: 48px;
-  min-width: 44px;
-  max-width: 100%;
-  position: relative;
-  padding: 0 var(--space-1);
-  border-radius: var(--radius-word);
-  text-align: center;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-}
-:is(.w,.demo-word).correct {
-  background: var(--ok-bg);
-  color: var(--ok-ink);
-  text-decoration: underline solid;
-  text-underline-offset: var(--space-2);
-  text-decoration-thickness: 2px;
-}
-:is(.w,.demo-word).substitution {
-  background: var(--bad-bg);
-  color: var(--bad-ink);
-  text-decoration: underline wavy;
-  text-underline-offset: var(--space-2);
-}
-:is(.w,.demo-word).omission {
-  background: var(--skip-bg);
-  color: var(--skip-ink);
-  text-decoration: line-through;
-}
-:is(.w,.demo-word).repeated {
-  background: var(--rep-bg);
-  color: var(--rep-ink);
-  text-decoration: underline dotted;
-  text-underline-offset: var(--space-2);
-  text-decoration-thickness: 3px;
-}
-.w.pointer {
-  box-shadow: inset 0 -4px var(--primary);
-}
-.w.selected {
-  outline: 3px solid var(--focus);
-  outline-offset: var(--space-1);
-}
-.w.provisional {
-  background: var(--pro-bg);
-  color: var(--pro-ink);
-  outline: 2px dashed var(--focus);
-  outline-offset: var(--space-1);
-}
-.w.provisional.selected {
-  outline: 3px solid var(--focus);
-}
-.w sup {
-  font-family: system-ui,sans-serif;
-  font-size: .48em;
-  margin-left: var(--space-1);
-  font-weight: 800;
-}
-.legend {
-  font-size: .75rem;
-  color: var(--muted);
-  display: flex;
-  gap: var(--space-3) var(--space-5);
-  flex-wrap: wrap;
-  margin: var(--space-5) 0;
-}
-.legend span {
-  white-space: nowrap;
-}
-.badge {
-  display: inline-flex;
-  padding: var(--space-2) var(--space-2);
-  font-size: .75rem;
-  font-weight: 700;
-  border-radius: var(--radius-surface);
-  white-space: nowrap;
-}
-.independent {
-  color: var(--lvl-ind);
-  background: var(--lvl-ind-bg);
-}
-.instructional {
-  color: var(--lvl-ins);
-  background: var(--lvl-ins-bg);
-}
-.frustration {
-  color: var(--lvl-fru);
-  background: var(--lvl-fru-bg);
-}
-.results-heading {
-  padding-bottom: var(--space-5);
-  border-bottom: 1px solid var(--line);
-}
-.results-heading .eyebrow {
-  display: block;
-  margin-bottom: var(--space-3);
-  color: var(--primary);
-}
-.results-heading h1 {
-  font-size: 2.8rem;
-}
-.results-heading p {
-  margin: 0;
-  font-size: .9rem;
-}
-.tiles {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 0;
-  margin: var(--space-5) 0;
-  border-bottom: 1px solid var(--line);
-}
-.tile {
-  padding: var(--space-5) var(--space-6);
-  min-width: 0;
-  border-radius: var(--radius-surface);
-}
-.tile small {
-  display: block;
-  font-size: .78rem;
-  color: var(--muted);
-  margin-bottom: var(--space-3);
-}
-.tile:nth-child(1) {
-  grid-column: 2;
-  grid-row: 2;
-  border-top: 1px solid var(--line);
-}
-.tile:nth-child(2) {
-  grid-column: 2;
-  grid-row: 1;
-}
-.tile:nth-child(3) {
-  grid-column: 3;
-  grid-row: 1 / 3;
-  border-left: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.tile:nth-child(4) {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  background: var(--bg);
-  border-right: 1px solid var(--line);
-  padding-left: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.value {
-  font-family: var(--display);
-  font-size: 2.8rem;
-  letter-spacing: -.06em;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.tile:first-child .value {
-  font-size: 1.6rem;
-  letter-spacing: -.03em;
-}
-.value .badge {
-  font-size: 1rem;
-  letter-spacing: -.02em;
-  white-space: normal;
-}
-.report-companion {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
-}
-.report-companion .mascot {
-  width: 80px;
-  height: 100px;
-  flex: none;
-}
-.pose {
-  display: none;
-}
-.pose-wait {
-  display: flex;
-}
-#results-screen:has(.independent):not(:has(#no-speech:not([hidden]))) .pose-cheer,#results-screen:has(.instructional):not(:has(#no-speech:not([hidden]))) .pose-encourage,#results-screen:has(.frustration):not(:has(#no-speech:not([hidden]))) .pose-support {
-  display: flex;
-}
-#results-screen:has(.badge):not(:has(#no-speech:not([hidden]))) .pose-wait {
-  display: none;
-}
-.breakdown {
-  font-size: .85rem;
-  line-height: 1.8;
-}
-.note {
-  padding: var(--space-4) var(--space-5);
-  background: var(--rep-bg);
-  color: var(--rep-ink);
-  border-left: 4px solid var(--rep-ink);
-  font-size: .85rem;
-  border-radius: var(--radius-message);
-}
-.note button {
-  margin-left: var(--space-3);
-}
-.result-actions {
-  margin-top: var(--space-6);
-}
-.banner {
-  background: var(--bad-bg);
-  color: var(--bad-ink);
-  border-left: 5px solid var(--bad-ink);
-  border-radius: var(--radius-message);
-  padding: var(--space-5);
-  margin: var(--space-4) 0;
-}
-.banner p {
-  margin-top: 0;
-}
-.editor {
-  position: fixed;
-  bottom: var(--space-4);
-  left: 50%;
-  transform: translateX(-50%);
-  width: max-content;
-  max-width: 95vw;
-  padding: var(--space-4);
-  background: var(--surface);
-  border: 2px solid var(--ink);
-  border-top: 1px solid var(--rule);
-  border-radius: var(--radius-message);
-  z-index: var(--layer-editor);
-}
-.editor-title {
-  font-size: .8rem;
-  margin-bottom: var(--space-2);
-  overflow-wrap: anywhere;
-}
-.editor .actions {
-  gap: var(--space-2);
-}
-.editor button {
-  font-size: .8rem;
-  padding: var(--space-3);
-}
-.editor button[data-status=correct] {
-  border-bottom: 3px solid var(--ok-ink);
-}
-.editor button[data-status=substitution] {
-  border-bottom: 3px double var(--bad-ink);
-}
-.editor button[data-status=omission] {
-  text-decoration: line-through;
-}
-.editor button[data-status=repeat] {
-  border-bottom: 3px dotted var(--rep-ink);
-}
-.toast {
-  position: fixed;
-  top: var(--space-5);
-  left: 50%;
-  transform: translateX(-50%);
-  padding: var(--space-4) var(--space-5);
-  background: var(--ink);
-  color: var(--surface);
-  border-radius: var(--radius-message);
-  z-index: var(--layer-message);
-  max-width: 90vw;
-  font-size: .85rem;
-}
-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: var(--space-3) var(--space-5);
-  background: var(--bg);
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: .7rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  text-align: left;
-  z-index: 3;
-}
-#debug-panel {
-  padding: var(--space-6);
-  border: 1px solid var(--line);
-}
-.mascot {
-  overflow: visible;
-  color: var(--ink);
-}
-.mascot .paper {
-  fill: var(--peach);
-  stroke: var(--primary);
-  stroke-width: 3;
-  stroke-linejoin: round;
-}
-.mascot .fold {
-  fill: var(--fold);
-  stroke: var(--primary);
-  stroke-width: 3;
-  stroke-linejoin: round;
-}
-.mascot .ink {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 3.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.mascot .eye {
-  fill: currentColor;
-}
-.mascot .limbs {
-  stroke: var(--ink);
-}
-@media(prefers-color-scheme:dark) {
-  :root {
-    --bg: #252e2a;
-    --surface: #303c35;
-    --ink: #eef2ea;
-    --muted: #b9c7ba;
-    --line: #839386;
-    --rule: #435449;
-    --primary: #ffb49e;
-    --primary-ink: #352820;
-    --peach: #f4b39d;
-    --fold: #cf7157;
-    --focus: #a3c8ff;
-    --ok-bg: #244b30;
-    --ok-ink: #d6f1d8;
-    --bad-bg: #572c40;
-    --bad-ink: #ffd6e3;
-    --skip-bg: #46504b;
-    --skip-ink: #e0e8e0;
-    --rep-bg: #4b421d;
-    --rep-ink: #f6e5a2;
-    --pro-bg: #2c425c;
-    --pro-ink: #d9eaff;
-    --lvl-ind: #d6f1d8;
-    --lvl-ind-bg: #244b30;
-    --lvl-ins: #f6e5a2;
-    --lvl-ins-bg: #4b421d;
-    --lvl-fru: #ecd8ff;
-    --lvl-fru-bg: #503960;
-  }
-  .mascot {
-    color: #352820;
-  }
-  .mascot .paper,.mascot .fold {
-    stroke: #963924;
-  }
-  .danger,.danger:hover {
-    color: var(--bg);
-  }
-}
-@media(min-width:768px) and (max-height:760px) {
-  main {
-    padding-top: var(--space-5);
-  }
-  .intro {
-    margin-bottom: var(--space-3);
-  }
-  .welcome {
-    --tupi-width: 85px;
-  }
-  .welcome .mascot {
-    height: 100px;
-  }
-  .setup-controls {
-    padding: var(--space-5) var(--space-6);
-  }
-  .field {
-    margin-bottom: var(--space-3);
-  }
-  .setup-controls h2 {
-    margin-bottom: var(--space-4);
-  }
-}
-@media(max-width:767px) {
-  header {
-    padding: var(--space-4) var(--space-4);
-    gap: var(--space-3);
-    flex-wrap: wrap;
-  }
-  .brand {
-    gap: var(--space-4);
-  }
-  .wordmark {
-    font-size: 2rem;
-  }
-  .chip {
-    font-size: .65rem;
-  }
-  main {
-    padding: var(--space-6) var(--space-4) var(--space-24);
-  }
-  .intro {
-    grid-template-columns: minmax(0,1fr) 120px;
-    gap: var(--space-3);
-  }
-  .intro h1 {
-    font-size: 2rem;
-  }
-  .welcome {
-    --tupi-width: 62px;
-  }
-  .welcome .mascot {
-    height: 85px;
-  }
-  .setup-grid {
-    grid-template-columns: 1fr;
-  }
-  .setup-controls {
-    padding: var(--space-6) var(--space-5);
-  }
-  .preview {
-    border-left: 0;
-    border-top: 2px solid var(--ink);
-    padding: var(--space-6) var(--space-5);
-  }
-  .preview p {
-    font-size: 1.15rem;
-  }
-  .preview h2 {
-    font-size: 1.5rem;
-  }
-  .section-top {
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .table-wrap {
-    padding: var(--space-1) var(--space-2);
-  }
-  .recent {
-    margin-top: var(--space-6);
-  }
-  .reading-top {
-    flex-wrap: wrap;
-    gap: var(--space-4);
-  }
-  .reading-top h1 {
-    font-size: 1.7rem;
-  }
-  .reading-top .actions {
-    width: 100%;
-    gap: var(--space-3);
-  }
-  .reading-top .chip {
-    order: 3;
-    width: 100%;
-  }
-  .reading-top .danger {
-    margin-left: auto;
-  }
-  .passage {
-    padding: var(--space-5) var(--space-3);
-    font-size: 1.8rem;
-  }
-  .legend {
-    gap: var(--space-3);
-    font-size: .7rem;
-  }
-  .results-heading h1 {
-    font-size: 2.2rem;
-  }
-  .tiles {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto;
-  }
-  .tile:nth-child(4) {
-    grid-column: 1 / 3;
-    grid-row: 1;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-    padding: var(--space-5) 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-  }
-  .tile:nth-child(4) small {
-    grid-column: 1;
-    margin: 0 0 var(--space-2);
-  }
-  .tile:nth-child(4) .value {
-    grid-column: 1;
-  }
-  .report-companion {
-    grid-column: 2;
-    grid-row: 1 / 3;
-    margin: 0;
-    justify-content: flex-end;
-  }
-  .report-companion .mascot {
-    width: 55px;
-    height: 75px;
-  }
-  .tile:nth-child(2) {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  .tile:nth-child(1) {
-    grid-column: 1;
-    grid-row: 3;
-  }
-  .tile:nth-child(3) {
-    grid-column: 2;
-    grid-row: 2 / 4;
-  }
-  .tile {
-    padding: var(--space-5) var(--space-3);
-  }
-  .value {
-    font-size: 2.3rem;
-  }
-  .value .badge {
-    font-size: .85rem;
-  }
-  .editor {
-    bottom: var(--space-4);
-    width: 94vw;
-    max-height: 60dvh;
-    overflow: auto;
-  }
-  .editor .actions {
-    display: grid;
-    grid-template-columns: repeat(2,minmax(0,1fr));
-  }
-  .editor button {
-    min-width: 0;
-    white-space: normal;
-  }
-  .editor button:last-child {
-    grid-column: 1 / -1;
-  }
-  .note button {
-    margin: var(--space-3) 0 0;
-  }
-  .result-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    width: 100%;
-  }
-  footer {
-    font-size: .65rem;
-  }
-}
-@media(prefers-reduced-motion:no-preference) {
-  #setup-screen:not([hidden]) .wave-arm {
-    transform-origin: 40px 82px;
-    animation: tupi-wave 3.6s ease-in-out infinite;
-  }
-  @keyframes tupi-wave {
-    0%,45%,100% {
-      transform: rotate(0);
-    }
-    10%,30% {
-      transform: rotate(16deg);
-    }
-    20%,40% {
-      transform: rotate(-8deg);
-    }
-  }
-  .listening .listening-fold {
-    transform-origin: 80px 50px;
-    animation: listen 2.4s ease-in-out infinite;
-  }
-  #results-screen:not([hidden]) .tiles {
-    animation: report-in .3s ease-out both;
-  }
-  @keyframes listen {
-    0%,100% {
-      transform: rotate(0);
-    }
-    50% {
-      transform: rotate(6deg);
-    }
-  }
-  @keyframes report-in {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-}
-@media(prefers-reduced-motion:reduce) {
-  *,*::before,*::after {
-    animation: none!important;
-    transition: none!important;
-    scroll-behavior: auto!important;
-  }
-}
-.w {
-  cursor: pointer;
-}
-.landing-hero {
-  display: grid;
-  grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr);
-  gap: var(--space-12);
-  align-items: center;
-  min-height: 480px;
-  padding: var(--space-12) 0;
-}
-.landing-copy {
-  padding-left: var(--space-6);
-  border-left: 6px solid var(--primary);
-}
-.landing-hero h1 {
-  font-size: clamp(3rem,5vw,4.2rem);
-  line-height: 1.08;
-  max-width: 14ch;
-  margin-bottom: var(--space-8);
-}
-.landing-copy .primary {
-  min-height: 56px;
-  padding: var(--space-4) var(--space-8);
-}
-.landing-demo {
-  position: relative;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left: 6px solid var(--primary);
-  padding: var(--space-8) var(--space-10) var(--space-12);
-  border-radius: var(--radius-surface);
-}
-.demo-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-6);
-  margin-bottom: var(--space-4);
-}
-.landing-demo h2 {
-  font-size: 1rem;
-  font-weight: 650;
-  margin: 0;
-  color: var(--muted);
-}
-.landing-companion {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  flex: none;
-}
-.landing-companion .mascot {
-  width: 100px;
-  height: 118px;
-}
-.demo-passage {
-  font: clamp(1.8rem,3vw,2.5rem)/1.85 var(--reader);
-  min-height: 150px;
-}
-.landing-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-10);
-}
-.landing-details h2 {
-  margin: 0 0 var(--space-3);
-}
-.landing-details p {
-  font-size: .85rem;
-  margin: 0 0 var(--space-3);
-  max-width: 60ch;
-}
-.landing-privacy {
-  border-left: 1px solid var(--line);
-  padding-left: var(--space-10);
-}
-.report-facts {
-  color: var(--muted);
-}
-footer a {
-  font-size: inherit;
-  min-height: 24px;
-  flex: none;
-}
-body:has(#landing-screen:not([hidden])) main {
-  padding-top: 0;
-  padding-bottom: var(--space-6);
-}
-body:has(#landing-screen:not([hidden])) footer {
-  position: static;
-  max-width: 1280px;
-  margin: auto;
-}
-@media(max-width:767px) {
-  .landing-hero {
-    grid-template-columns: 1fr;
-    gap: var(--space-8);
-    min-height: 0;
-    padding: var(--space-8) 0;
-  }
-  .landing-copy {
-    padding-left: var(--space-4);
-  }
-  .landing-hero h1 {
-    font-size: 2.5rem;
-    margin-bottom: var(--space-6);
-  }
-  .landing-copy .primary {
-    padding: var(--space-3) var(--space-6);
-    min-height: 48px;
-  }
-  .landing-demo {
-    padding: var(--space-4) var(--space-5) var(--space-6);
-    transform: none;
-  }
-  .demo-head {
-    margin-bottom: var(--space-3);
-  }
-  .landing-companion .mascot {
-    width: 65px;
-    height: 76px;
-  }
-  .demo-passage {
-    font-size: 1.65rem;
-    min-height: 120px;
-  }
-  .demo-word {
-    min-width: 0;
-    min-height: 0;
-  }
-  .landing-details {
-    grid-template-columns: 1fr;
-    gap: var(--space-5);
-  }
-  .landing-privacy {
-    border-left: 0;
-    border-top: 1px solid var(--line);
-    padding: var(--space-5) 0 0;
-  }
-  .landing-details p {
-    font-size: .8rem;
-  }
-  footer {
-    flex-wrap: wrap;
-    gap: var(--space-1);
-  }
-}
-.validation-limit {
-  font-size: .8rem;
-  color: var(--muted);
-  margin: var(--space-4) 0 var(--space-3);
-}
-.about-booklat {
-  border-top: 1px solid var(--line);
-}
-.about-booklat summary {
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  cursor: pointer;
-  font-size: .85rem;
-  font-weight: 650;
-}
-.about-booklat summary::before {
-  content: "+";
-  font-size: 1.2rem;
-}
-.about-booklat[open] summary::before {
-  content: "-";
-}
-.about-booklat .landing-details {
-  padding: var(--space-4) 0;
-}
-.about-booklat>p {
-  font-size: .75rem;
-  color: var(--muted);
-  margin: 0 0 var(--space-4);
-}
-#start-hint {
-  display: none;
-}
-body:has(#model-chip.missing) #start-hint {
-  display: block;
-}
-body:has(#landing-screen[hidden]) footer {
-  display: none;
-}
-.welcome p {
-  position: absolute;
-  top: var(--space-6);
-  left: calc(var(--tupi-width) * .72);
-  margin: 0;
-  white-space: nowrap;
-  font-size: .75rem;
-  line-height: 1.4;
-  font-family: var(--display);
-  font-weight: 700;
-  color: var(--primary);
-}
+:root{
+  --radius-control:4px;
+  --radius-surface:0;
+  --radius-message:8px;
+  --radius-word:2px;
+  --layer-sticky:1;
+  --layer-menu:2;
+  --layer-editor:3;
+  --layer-message:4;
+  color-scheme:light dark;
+  --bg:#eef1ed;
+  --surface:#fafbf8;
+  --ink:#252c2a;
+  --muted:#53605a;
+  --line:#7e8982;
+  --rule:#d7ded7;
+  --primary:#a33a26;
+  --primary-ink:#fafbf8;
+  --peach:#f4b39d;
+  --fold:#d77558;
+  --focus:#174f94;
+  --ok-bg:#dcebdd;
+  --ok-ink:#245330;
+  --bad-bg:#f5dde6;
+  --bad-ink:#872449;
+  --skip-bg:#e2e5e5;
+  --skip-ink:#4c5555;
+  --rep-bg:#f2e7b9;
+  --rep-ink:#68500c;
+  --pro-bg:#e0eafb;
+  --pro-ink:#254b7e;
+  --lvl-ind:#245330;
+  --lvl-ind-bg:#dcebdd;
+  --lvl-ins:#68500c;
+  --lvl-ins-bg:#f2e7b9;
+  --lvl-fru:#5c3b77;
+  --lvl-fru-bg:#ece1f4;
+  --radius-control:4px;
+  --radius-message:8px;
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --space-8:32px;
+  --space-10:40px;
+  --space-12:48px;
+  --space-16:64px;
+  --space-20:80px;
+  --space-24:96px;
+  --display:"Trebuchet MS",Verdana,system-ui,sans-serif;
+  --reader:Georgia,"Times New Roman",serif;
+  font:18px system-ui,"Segoe UI",sans-serif;
+  color:var(--ink);
+  background:var(--bg)}
+
+*{
+  box-sizing:border-box}
+body{
+  margin:0;
+  min-width:0}
+button,input,select{
+  font:inherit}
+button,.button{
+  min-height:48px;
+  padding:var(--space-3) var(--space-5);
+  border:1px solid var(--line);
+  border-radius:var(--radius-control);
+  background:var(--surface);
+  color:var(--ink);
+  font-size:.85rem;
+  font-weight:650;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:var(--space-2);
+  white-space:nowrap}
+button:hover,.button:hover{
+  border-color:var(--primary);
+  background:var(--bg)}
+button:disabled{
+  cursor:not-allowed;
+  background:var(--rule);
+  color:var(--muted);
+  border-color:var(--line)}
+.primary{
+  background:var(--primary);
+  color:var(--primary-ink);
+  border-color:var(--primary)}
+.primary:hover{
+  background:var(--primary);
+  text-decoration:underline}
+.danger{
+  background:var(--bad-ink);
+  color:var(--surface);
+  border-color:var(--bad-ink)}
+.danger:hover{
+  background:var(--bad-ink);
+  text-decoration:underline}
+:focus-visible{
+  outline:3px solid var(--focus);
+  outline-offset:var(--space-1)}
+[hidden]{
+  display:none!important}
+
+header{
+  max-width:1280px;
+  margin:auto;
+  padding:var(--space-4) var(--space-10);
+  min-height:80px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:var(--space-6);
+  border-bottom:1px solid var(--line)}
+.brand{
+  display:flex;
+  gap:var(--space-5);
+  align-items:center}
+.wordmark{
+  font-family:var(--display);
+  font-size:2.1rem;
+  font-weight:900;
+  letter-spacing:-.08em;
+  line-height:1.1;
+  color:var(--primary)}
+.wordmark .turn{
+  display:inline-block;
+  transform:rotate(-9deg);
+  border-bottom:.08em solid currentColor}
+.wordmark .lat{
+  color:var(--ink)}
+.chips{
+  display:flex;
+  align-items:center;
+  gap:var(--space-4)}
+.chip{
+  font-size:.72rem;
+  color:var(--muted);
+  padding:var(--space-1) 0;
+  white-space:nowrap}
+.chip.ready{
+  color:var(--ok-ink)}
+.chip.missing{
+  color:var(--bad-ink)}
+.chip.loading{
+  color:var(--rep-ink)}
+main{
+  max-width:1280px;
+  margin:auto;
+  padding:var(--space-8) var(--space-10) var(--space-24)}
+h1,h2{
+  font-family:var(--display)}
+h1{
+  font-size:clamp(2rem,4vw,3.4rem);
+  font-weight:800;
+  letter-spacing:-.055em;
+  line-height:1.08;
+  margin:0 0 var(--space-3)}
+h2{
+  font-size:1.2rem;
+  letter-spacing:-.035em;
+  margin:0 0 var(--space-5)}
+p{
+  line-height:1.6}
+.muted,.hint,.eyebrow{
+  font-size:.85rem;
+  font-weight:600}
+.intro{
+  display:grid;
+  grid-template-columns:1fr 185px;
+  align-items:center;
+  gap:var(--space-6);
+  margin-bottom:var(--space-5)}
+.welcome{
+  --tupi-width:115px;
+  position:relative;
+  padding-top:var(--space-6);
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:var(--space-2)}
+.welcome .mascot{
+  width:var(--tupi-width);
+  height:140px}
+.card{
+  background:var(--surface);
+  border-radius:0}
+.setup-grid{
+  display:grid;
+  grid-template-columns:minmax(280px,.8fr) minmax(0,1.4fr);
+  gap:0;
+  border:1px solid var(--line);
+  border-top:0;
+  position:relative}
+.setup-controls{
+  padding:var(--space-6) var(--space-8);
+  border-top:6px solid var(--primary)}
+.field{
+  display:grid;
+  gap:var(--space-2);
+  margin-bottom:var(--space-4)}
+label{
+  font-size:.8rem;
+  font-weight:650}
+input,select{
+  min-height:50px;
+  width:100%;
+  padding:var(--space-2) var(--space-3);
+  border:1px solid var(--line);
+  border-radius:var(--radius-control);
+  background:var(--surface);
+  color:var(--ink);
+  font-size:.85rem}
+.debug-choice{
+  display:flex;
+  align-items:center;
+  gap:var(--space-2);
+  min-height:48px}
+.debug-choice input{
+  width:20px;
+  min-height:20px;
+  accent-color:var(--primary)}
+.start{
+  width:100%;
+  margin-top:var(--space-2)}
+.hint{
+  font-size:.72rem;
+  line-height:1.6;
+  min-height:1.5em;
+  overflow-wrap:anywhere;
+  margin-bottom:0}
+.preview{
+  padding:var(--space-6) var(--space-10) var(--space-8);
+  border-left:1px solid var(--line);
+  border-top:6px solid var(--ink);
+  background:repeating-linear-gradient(transparent,transparent 35px,var(--rule) 35px,var(--rule) 36px);
+  background-position:0 80px;
+  min-width:0}
+.preview .eyebrow{
+  display:block;
+  color:var(--muted);
+  font-weight:400;
+  margin-bottom:var(--space-4)}
+.preview h2{
+  font-size:1.8rem;
+  line-height:1.2;
+  margin-bottom:var(--space-4)}
+.preview p{
+  font-family:var(--reader);
+  font-size:1.25rem;
+  line-height:2;
+  margin:0;
+  overflow-wrap:anywhere}
+.recent{
+  margin-top:var(--space-8)}
+.section-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:var(--space-4);
+  margin-bottom:var(--space-3)}
+.section-top h2{
+  margin:0}
+.table-wrap{
+  overflow:auto;
+  border-top:2px solid var(--ink);
+  padding:var(--space-1) var(--space-4)}
+table{
+  width:100%;
+  border-collapse:collapse;
+  text-align:left;
+  font-size:.85rem}
+th,td{
+  padding:var(--space-4) var(--space-2);
+  border-bottom:1px solid var(--rule)}
+th{
+  font-size:.75rem;
+  color:var(--muted);
+  font-weight:600}
+tbody tr:last-child td{
+  border-bottom:0}
+.empty{
+  padding:var(--space-6) var(--space-3);
+  color:var(--muted);
+  font-size:.85rem}
+
+.reading-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--space-6);
+  border-bottom:1px solid var(--line);
+  padding-bottom:var(--space-4)}
+.reading-top h1{
+  font-size:2rem;
+  margin:var(--space-2) 0 0}
+.actions{
+  display:flex;
+  align-items:center;
+  gap:var(--space-3);
+  flex-wrap:wrap}
+.clock{
+  font-size:1.8rem;
+  font-weight:650;
+  font-variant-numeric:tabular-nums}
+.listening-row{
+  display:flex;
+  align-items:center;
+  gap:var(--space-4);
+  min-height:85px}
+.listening-row .mascot{
+  width:54px;
+  height:70px;
+  flex:none}
+.status{
+  font-size:.85rem;
+  color:var(--muted);
+  font-weight:600;
+  margin:var(--space-3) 0}
+.passage{
+  font-family:var(--reader);
+  font-size:clamp(1.8rem,3vw,2.6rem);
+  line-height:1.95;
+  padding:var(--space-8) var(--space-10);
+  border:1px solid var(--line);
+  border-top:5px solid var(--ink);
+  overflow-wrap:anywhere}
+:is(.w,.demo-word){
+  display:inline-block;
+  min-height:48px;
+  min-width:44px;
+  max-width:100%;
+  position:relative;
+  padding:0 var(--space-1);
+  border-radius:2px;
+  text-align:center;
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone}
+:is(.w,.demo-word).correct{
+  background:var(--ok-bg);
+  color:var(--ok-ink);
+  text-decoration:underline solid;
+  text-underline-offset:var(--space-2);
+  text-decoration-thickness:2px}
+:is(.w,.demo-word).substitution{
+  background:var(--bad-bg);
+  color:var(--bad-ink);
+  text-decoration:underline wavy;
+  text-underline-offset:var(--space-2)}
+:is(.w,.demo-word).omission{
+  background:var(--skip-bg);
+  color:var(--skip-ink);
+  text-decoration:line-through}
+:is(.w,.demo-word).repeated{
+  background:var(--rep-bg);
+  color:var(--rep-ink);
+  text-decoration:underline dotted;
+  text-underline-offset:var(--space-2);
+  text-decoration-thickness:3px}
+.w.pointer{
+  box-shadow:inset 0 -4px var(--primary)}
+.w.selected{
+  outline:3px solid var(--focus);
+  outline-offset:var(--space-1)}
+.w.provisional{
+  background:var(--pro-bg);
+  color:var(--pro-ink);
+  outline:2px dashed var(--focus);
+  outline-offset:var(--space-1)}
+.w.provisional.selected{
+  outline:3px solid var(--focus)}
+.w sup{
+  font-family:system-ui,sans-serif;
+  font-size:.48em;
+  margin-left:var(--space-1);
+  font-weight:800}
+.legend{
+  font-size:.75rem;
+  color:var(--muted);
+  display:flex;
+  gap:var(--space-3) var(--space-5);
+  flex-wrap:wrap;
+  margin:var(--space-5) 0}
+.legend span{
+  white-space:nowrap}
+.badge{
+  display:inline-flex;
+  padding:var(--space-2) var(--space-2);
+  font-size:.75rem;
+  font-weight:700;
+  border-radius:0;
+  white-space:nowrap}
+.independent{
+  color:var(--lvl-ind);
+  background:var(--lvl-ind-bg)}
+.instructional{
+  color:var(--lvl-ins);
+  background:var(--lvl-ins-bg)}
+.frustration{
+  color:var(--lvl-fru);
+  background:var(--lvl-fru-bg)}
+.results-heading{
+  padding-bottom:var(--space-5);
+  border-bottom:1px solid var(--line)}
+.results-heading .eyebrow{
+  display:block;
+  margin-bottom:var(--space-3);
+  color:var(--primary)}
+.results-heading h1{
+  font-size:2.8rem}
+.results-heading p{
+  margin:0;
+  font-size:.9rem}
+.tiles{
+  display:grid;
+  grid-template-columns:1.3fr 1fr 1fr;
+  grid-template-rows:auto auto;
+  gap:0;
+  margin:var(--space-5) 0;
+  border-bottom:1px solid var(--line)}
+.tile{
+  padding:var(--space-5) var(--space-6);
+  min-width:0;
+  border-radius:0}
+.tile small{
+  display:block;
+  font-size:.78rem;
+  color:var(--muted);
+  margin-bottom:var(--space-3)}
+.tile:nth-child(1){
+  grid-column:2;
+  grid-row:2;
+  border-top:1px solid var(--line)}
+.tile:nth-child(2){
+  grid-column:2;
+  grid-row:1}
+.tile:nth-child(3){
+  grid-column:3;
+  grid-row:1 / 3;
+  border-left:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  justify-content:center}
+.tile:nth-child(4){
+  grid-column:1;
+  grid-row:1 / 3;
+  background:var(--bg);
+  border-right:1px solid var(--line);
+  padding-left:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center}
+.value{
+  font-family:var(--display);
+  font-size:2.8rem;
+  letter-spacing:-.06em;
+  font-weight:700;
+  font-variant-numeric:tabular-nums}
+.tile:first-child .value{
+  font-size:1.6rem;
+  letter-spacing:-.03em}
+.value .badge{
+  font-size:1rem;
+  letter-spacing:-.02em;
+  white-space:normal}
+.report-companion{
+  display:flex;
+  align-items:center;
+  gap:var(--space-3);
+  margin-top:var(--space-4)}
+.report-companion .mascot{
+  width:80px;
+  height:100px;
+  flex:none}
+.pose{
+  display:none}
+.pose-wait{
+  display:flex}
+#results-screen:has(.independent):not(:has(#no-speech:not([hidden]))) .pose-cheer,#results-screen:has(.instructional):not(:has(#no-speech:not([hidden]))) .pose-encourage,#results-screen:has(.frustration):not(:has(#no-speech:not([hidden]))) .pose-support{
+  display:flex}
+#results-screen:has(.badge):not(:has(#no-speech:not([hidden]))) .pose-wait{
+  display:none}
+.breakdown{
+  font-size:.85rem;
+  line-height:1.8}
+.note{
+  padding:var(--space-4) var(--space-5);
+  background:var(--rep-bg);
+  color:var(--rep-ink);
+  border-left:4px solid var(--rep-ink);
+  font-size:.85rem;
+  border-radius:var(--radius-message)}
+.note button{
+  margin-left:var(--space-3)}
+.result-actions{
+  margin-top:var(--space-6)}
+.banner{
+  background:var(--bad-bg);
+  color:var(--bad-ink);
+  border-left:5px solid var(--bad-ink);
+  border-radius:var(--radius-message);
+  padding:var(--space-5);
+  margin:var(--space-4) 0}
+.banner p{
+  margin-top:0}
+.editor{
+  position:fixed;
+  bottom:var(--space-4);
+  left:50%;
+  transform:translateX(-50%);
+  width:max-content;
+  max-width:95vw;
+  padding:var(--space-4);
+  background:var(--surface);
+  border:2px solid var(--ink);
+  border-top:6px solid var(--primary);
+  border-radius:var(--radius-message);
+  box-shadow:0 var(--space-1) 0 var(--rule);
+  z-index:5}
+.editor-title{
+  font-size:.8rem;
+  margin-bottom:var(--space-2);
+  overflow-wrap:anywhere}
+.editor .actions{
+  gap:var(--space-2)}
+.editor button{
+  font-size:.8rem;
+  padding:var(--space-3)}
+.editor button[data-status=correct]{
+  border-bottom:3px solid var(--ok-ink)}
+.editor button[data-status=substitution]{
+  border-bottom:3px double var(--bad-ink)}
+.editor button[data-status=omission]{
+  text-decoration:line-through}
+.editor button[data-status=repeat]{
+  border-bottom:3px dotted var(--rep-ink)}
+.toast{
+  position:fixed;
+  top:var(--space-5);
+  left:50%;
+  transform:translateX(-50%);
+  padding:var(--space-4) var(--space-5);
+  background:var(--ink);
+  color:var(--surface);
+  border-radius:var(--radius-message);
+  z-index:10;
+  max-width:90vw;
+  font-size:.85rem}
+footer{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  padding:var(--space-3) var(--space-5);
+  background:var(--bg);
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  font-size:.7rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--space-4);
+  text-align:left;
+  z-index:3}
+/* Layers: footer 3, word editor 5, transient message 10. */#debug-panel{
+  padding:var(--space-6);
+  border:1px solid var(--line)}
+.mascot{
+  overflow:visible;
+  color:var(--ink)}
+.mascot .paper{
+  fill:var(--peach);
+  stroke:var(--primary);
+  stroke-width:3;
+  stroke-linejoin:round}
+.mascot .fold{
+  fill:var(--fold);
+  stroke:var(--primary);
+  stroke-width:3;
+  stroke-linejoin:round}
+.mascot .ink{
+  fill:none;
+  stroke:currentColor;
+  stroke-width:3.5;
+  stroke-linecap:round;
+  stroke-linejoin:round}
+.mascot .eye{
+  fill:currentColor}
+.mascot .limbs{
+  stroke:var(--ink)}
+
+@media(prefers-color-scheme:dark){
+  :root{
+  --bg:#252e2a;
+  --surface:#303c35;
+  --ink:#eef2ea;
+  --muted:#b9c7ba;
+  --line:#839386;
+  --rule:#435449;
+  --primary:#ffb49e;
+  --primary-ink:#352820;
+  --peach:#f4b39d;
+  --fold:#cf7157;
+  --focus:#a3c8ff;
+  --ok-bg:#244b30;
+  --ok-ink:#d6f1d8;
+  --bad-bg:#572c40;
+  --bad-ink:#ffd6e3;
+  --skip-bg:#46504b;
+  --skip-ink:#e0e8e0;
+  --rep-bg:#4b421d;
+  --rep-ink:#f6e5a2;
+  --pro-bg:#2c425c;
+  --pro-ink:#d9eaff;
+  --lvl-ind:#d6f1d8;
+  --lvl-ind-bg:#244b30;
+  --lvl-ins:#f6e5a2;
+  --lvl-ins-bg:#4b421d;
+  --lvl-fru:#ecd8ff;
+  --lvl-fru-bg:#503960}
+.mascot{
+  color:#352820}
+.mascot .paper,.mascot .fold{
+  stroke:#963924}
+.danger,.danger:hover{
+  color:var(--bg)}
+}
+
+@media(min-width:768px) and (max-height:760px){
+  main{
+  padding-top:var(--space-5)}
+.intro{
+  margin-bottom:var(--space-3)}
+.welcome .mascot{
+  height:100px;
+  width:85px}
+.setup-controls{
+  padding:var(--space-5) var(--space-6)}
+.field{
+  margin-bottom:var(--space-3)}
+.setup-controls h2{
+  margin-bottom:var(--space-4)}
+}
+
+@media(max-width:767px){
+  header{
+  padding:var(--space-4) var(--space-4);
+  gap:var(--space-3);
+  flex-wrap:wrap}
+.brand{
+  gap:var(--space-4)}
+.wordmark{
+  font-size:2rem}
+.chips{
+  width:100%;
+  justify-content:space-between;
+  gap:var(--space-2)}
+.chip{
+  font-size:.65rem}
+main{
+  padding:var(--space-6) var(--space-4) var(--space-24)}
+.intro{
+  grid-template-columns:minmax(0,1fr) 120px;
+  gap:var(--space-3)}
+.intro h1{
+  font-size:2rem}
+.welcome .mascot{
+  width:62px;
+  height:85px}
+.setup-grid{
+  grid-template-columns:1fr}
+.setup-controls{
+  padding:var(--space-6) var(--space-5)}
+.preview{
+  border-left:0;
+  border-top:2px solid var(--ink);
+  padding:var(--space-6) var(--space-5)}
+.preview p{
+  font-size:1.15rem}
+.preview h2{
+  font-size:1.5rem}
+.section-top{
+  align-items:center;
+  flex-wrap:wrap}
+.table-wrap{
+  padding:var(--space-1) var(--space-2)}
+.recent{
+  margin-top:var(--space-6)}
+.reading-top{
+  flex-wrap:wrap;
+  gap:var(--space-4)}
+.reading-top h1{
+  font-size:1.7rem}
+.reading-top .actions{
+  width:100%;
+  gap:var(--space-3)}
+.reading-top .chip{
+  order:3;
+  width:100%}
+.reading-top .danger{
+  margin-left:auto}
+.passage{
+  padding:var(--space-5) var(--space-3);
+  font-size:1.8rem}
+.legend{
+  gap:var(--space-3);
+  font-size:.7rem}
+.results-heading h1{
+  font-size:2.2rem}
+.tiles{
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:auto auto auto}
+.tile:nth-child(4){
+  grid-column:1 / 3;
+  grid-row:1;
+  border-right:0;
+  border-bottom:1px solid var(--line);
+  padding:var(--space-5) 0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  align-items:center}
+.tile:nth-child(4) small{
+  grid-column:1;
+  margin:0 0 var(--space-2)}
+.tile:nth-child(4) .value{
+  grid-column:1}
+.report-companion{
+  grid-column:2;
+  grid-row:1 / 3;
+  margin:0;
+  justify-content:flex-end}
+.report-companion .mascot{
+  width:55px;
+  height:75px}
+.tile:nth-child(2){
+  grid-column:1;
+  grid-row:2}
+.tile:nth-child(1){
+  grid-column:1;
+  grid-row:3}
+.tile:nth-child(3){
+  grid-column:2;
+  grid-row:2 / 4}
+.tile{
+  padding:var(--space-5) var(--space-3)}
+.value{
+  font-size:2.3rem}
+.value .badge{
+  font-size:.85rem}
+.editor{
+  bottom:var(--space-4);
+  width:94vw;
+  max-height:60dvh;
+  overflow:auto}
+.editor .actions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr))}
+.editor button{
+  min-width:0;
+  white-space:normal}
+.editor button:last-child{
+  grid-column:1 / -1}
+.note button{
+  margin:var(--space-3) 0 0}
+.result-actions{
+  display:grid;
+  grid-template-columns:1fr;
+  width:100%}
+footer{
+  font-size:.65rem}
+}
+
+@media(prefers-reduced-motion:no-preference){
+  .listening .listening-fold{
+  transform-origin:80px 50px;
+  animation:listen 2.4s ease-in-out infinite}
+#results-screen:not([hidden]) .tiles{
+  animation:report-in .3s ease-out both}
+@keyframes listen{
+  0%,100%{
+  transform:rotate(0)}
+50%{
+  transform:rotate(6deg)}
+}
+@keyframes report-in{
+  from{
+  opacity:0;
+  transform:translateY(6px)}
+to{
+  opacity:1;
+  transform:translateY(0)}
+}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+  animation:none!important;
+  transition:none!important;
+  scroll-behavior:auto!important}
+}
+
+
+.w{
+  cursor:pointer}
+
+.skip-link,footer a{
+  color:var(--ink);
+  font-size:.75rem;
+  text-underline-offset:var(--space-1);
+  min-height:48px;
+  display:inline-flex;
+  align-items:center}
+
+.landing-hero{
+  display:grid;
+  grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  gap:var(--space-12);
+  align-items:center;
+  min-height:480px;
+  padding:var(--space-12) 0;
+}
+.landing-copy{padding-left:var(--space-6);border-left:6px solid var(--primary)}
+.landing-hero h1{font-size:clamp(3rem,5vw,4.2rem);line-height:1.08;max-width:14ch;margin-bottom:var(--space-8)}
+.landing-copy .primary{min-height:56px;padding:var(--space-4) var(--space-8)}
+.landing-demo{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-left:6px solid var(--primary);
+  padding:var(--space-8) var(--space-10) var(--space-12);
+  box-shadow:var(--space-2) var(--space-2) 0 var(--rule);
+  transform:rotate(-2deg);
+}
+.landing-demo::before,.landing-demo::after{content:"";position:absolute;top:0;right:0;width:32px;height:32px;pointer-events:none}
+.landing-demo::before{background:var(--bg);clip-path:polygon(0 0,100% 0,100% 100%)}
+.landing-demo::after{background:var(--rule);clip-path:polygon(0 0,0 100%,100% 100%)}
+.demo-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-6);margin-bottom:var(--space-4)}
+.landing-demo h2{font-size:1rem;font-weight:650;margin:0;color:var(--muted)}
+.landing-companion{display:flex;justify-content:center;flex:none}
+.landing-companion .mascot{width:100px;height:118px}
+.demo-passage{font:clamp(1.8rem,3vw,2.5rem)/1.85 var(--reader);min-height:150px}
+.landing-details{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:var(--space-10)}
+
+.landing-details h2{
+  margin:0 0 var(--space-3)}
+
+.landing-details p{
+  font-size:.85rem;
+  margin:0 0 var(--space-3);
+  max-width:60ch}
+
+.landing-privacy{
+  border-left:1px solid var(--line);
+  padding-left:var(--space-10)}
+
+.report-facts{
+  color:var(--muted)}
+
+footer a{
+  font-size:inherit;
+  min-height:24px;
+  flex:none}
+
+body:has(#landing-screen:not([hidden])) main{
+  padding-top:0;
+  padding-bottom:var(--space-6)}
+
+body:has(#landing-screen:not([hidden])) footer{
+  position:static;
+  max-width:1280px;
+  margin:auto}
+
+@media(max-width:767px){
+
+ .landing-hero{grid-template-columns:1fr;gap:var(--space-8);min-height:0;padding:var(--space-8) 0}
+ .landing-copy{padding-left:var(--space-4)}
+ .landing-hero h1{font-size:2.5rem;margin-bottom:var(--space-6)}
+ .landing-copy .primary{padding:var(--space-3) var(--space-6);min-height:48px}
+ .landing-demo{padding:var(--space-4) var(--space-5) var(--space-6);transform:none;box-shadow:var(--space-1) var(--space-1) 0 var(--rule)}
+ .demo-head{margin-bottom:var(--space-3)}
+ .landing-companion .mascot{width:65px;height:76px}
+ .demo-passage{font-size:1.65rem;min-height:120px}
+ .demo-word{min-width:0;min-height:0}
+
+ .landing-details{
+  grid-template-columns:1fr;
+  gap:var(--space-5)}
+
+ .landing-privacy{
+  border-left:0;
+  border-top:1px solid var(--line);
+  padding:var(--space-5) 0 0}
+
+ .landing-details p{
+  font-size:.8rem}
+
+ footer{
+  flex-wrap:wrap;
+  gap:var(--space-1)}
+
+}
+body:has(#landing-screen[hidden]) .skip-link{display:none}
+
+.validation-limit{font-size:.8rem;color:var(--muted);margin:var(--space-4) 0 var(--space-3)}
+.about-booklat{border-top:1px solid var(--line)}
+.about-booklat summary{min-height:48px;display:flex;align-items:center;gap:var(--space-2);cursor:pointer;font-size:.85rem;font-weight:650}
+.about-booklat summary::before{content:"+";font-size:1.2rem}
+.about-booklat[open] summary::before{content:"-"}
+.about-booklat .landing-details{padding:var(--space-4) 0}
+.about-booklat>p{font-size:.75rem;color:var(--muted);margin:0 0 var(--space-4)}
+#start-hint{display:none}
+body:has(#model-chip.missing) #start-hint{display:block}
+body:has(#landing-screen[hidden]) footer{display:none}
+.welcome p{position:absolute;top:var(--space-6);left:calc(var(--tupi-width) * .72);margin:0;white-space:nowrap;font-size:.75rem;line-height:1.4;font-family:var(--display);font-weight:700;color:var(--primary)}
 textarea {
   font: inherit;
   width: 100%;
@@ -1368,45 +1145,13 @@ textarea {
   margin-bottom: var(--space-6);
 }
 .preview-heading #expand-preview {
-  margin-left: auto;
+  margin-left: 0;
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-color: var(--primary);
 }
 .preview-heading .icon-button {
   flex: none;
-}
-.passage-menu {
-  position: relative;
-  flex: none;
-}
-.passage-menu summary {
-  list-style: none;
-  cursor: pointer;
-}
-.passage-menu-items {
-  position: absolute;
-  right: 0;
-  top: calc(100% + var(--space-2));
-  width: 240px;
-  background: var(--surface);
-  padding: var(--space-3);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-message);
-  z-index: var(--layer-menu);
-}
-.passage-menu-items p {
-  font-size: .7rem;
-  color: var(--muted);
-  margin: var(--space-2) var(--space-3);
-}
-.passage-menu-items button {
-  width: 100%;
-  justify-content: flex-start;
-}
-.favorite-indicator {
-  width: 16px!important;
-  height: 16px!important;
-  margin-right: var(--space-2);
-  vertical-align: middle;
-  color: var(--primary);
 }
 .history-viewport {
   max-height: 360px;
@@ -1689,31 +1434,6 @@ body:has(dialog[open]) {
 #large-passage-progress {
   margin: 0 0 var(--space-2);
 }
-.passage-filters {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  align-items: end;
-}
-.passage-filters>div {
-  flex: 1;
-  min-width: 120px;
-}
-.passage-filters label {
-  display: block;
-  margin-bottom: var(--space-2);
-}
-.passage-filters .favorite-filter {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 48px;
-  margin: 0;
-}
-.favorite-filter input {
-  width: 20px;
-  min-height: 20px;
-}
 .projector-mode .large-passage-body {
   position: relative;
   display: flex;
@@ -1801,9 +1521,6 @@ body:has(dialog[open]) {
   .download-options {
     width: min(280px,calc(100vw - var(--space-8)));
   }
-  .passage-menu-items {
-    right: -48px;
-  }
   .preview-expanded #preview-heading {
     font-size: 1.5rem;
   }
@@ -1854,18 +1571,76 @@ body:has(dialog[open]) {
     border-radius: var(--radius-surface) var(--radius-surface) 0 0;
   }
 }
+
+@media(prefers-reduced-motion:no-preference){
+ #setup-screen:not([hidden]) .wave-arm{transform-origin:40px 82px;animation:tupi-wave 3.6s ease-in-out infinite}
+ @keyframes tupi-wave{0%,45%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-8deg)}}
+}
+.passage-search:has(input:placeholder-shown) #clear-passage-search{display:none}
+.preview-heading{flex-wrap:wrap}
+
+.passage-option[aria-selected="true"]{background:var(--pro-bg);border-left-color:var(--focus)}
+.setup-grid{border:0;gap:0}
+.setup-controls{border-top:5px solid var(--primary)}
+.preview{border-top:5px solid var(--ink)}
+.settings-layout{grid-template-columns:1fr;gap:0;background:var(--surface);border-top:5px solid var(--ink)}
+.settings-group{background:transparent;border:0;border-bottom:1px solid var(--rule);padding:var(--space-6) var(--space-8)}
+.settings-group:last-child{border-bottom:0}
+.settings-advanced{grid-column:auto}
+.settings-group .field{max-width:520px}
+.recording-panel,.grading-panel{border:0;border-top:2px solid var(--ink)}
+.library{background:transparent;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.history-viewport{border:0;border-top:2px solid var(--ink)}
+.hint{font-weight:400}
+@media(min-width:768px) and (max-height:760px){.welcome{--tupi-width:85px}}
+@media(max-width:767px){
+ .welcome{--tupi-width:62px}
+ .section-top{flex-wrap:wrap}
+ .settings-group{padding:var(--space-5)}
+ .setup-controls{border-top:5px solid var(--primary)}
+ .preview{border-top:2px solid var(--ink)}
+ .recording-panel,.grading-panel{padding:var(--space-4)}
+}
+
+#validation-hint,#philiri-calculation{display:none}
+
+.passage-picker{position:relative}
+.passage-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-control);z-index:var(--layer-menu)}
+.passage-dropdown .passage-list{--passage-row:64px;max-height:calc(var(--passage-row)*4);border:0;border-radius:0}
+.passage-dropdown #passage-empty{padding:var(--space-3);margin:0}
+#toggle-passages{min-width:48px;padding:var(--space-2);font-size:1.2rem}
+
+.preview-heading #expand-preview{margin-left:0}
+.preview-heading #preview-heading{flex:1;min-width:0}
+.large-passage-body{border-left:4px solid var(--primary);background-color:var(--surface)}
+.large-passage-body .preview{background:none}
+.large-passage-body .passage,.large-passage-body #preview{
+ --paper-line:calc(var(--large-font,44px) * 1.8);
+ background-color:var(--surface);
+ background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--paper-line) - 1px),var(--rule) calc(var(--paper-line) - 1px),var(--rule) var(--paper-line));
+ background-origin:content-box;
+}
+
+#passage-size{width:104px;min-width:0}
+.import-source{display:flex;align-items:center;gap:var(--space-4);padding:var(--space-4) 0 var(--space-6);border-bottom:1px solid var(--rule);margin-bottom:var(--space-6)}
+#import-filename{font-size:.8rem;overflow-wrap:anywhere;color:var(--muted)}
+.import-layout{display:grid;grid-template-columns:minmax(200px,.7fr) minmax(0,1.5fr);gap:var(--space-8)}
+#import-text{min-height:320px;font-family:var(--reader);font-size:1rem;line-height:1.8;background:var(--surface);border-top:3px solid var(--ink)}
+.import-details{grid-template-columns:1fr;align-content:start}
+.import-actions{margin-top:var(--space-5);padding-top:var(--space-5);border-top:1px solid var(--rule)}
+.excerpt-tools{margin-bottom:var(--space-6)}
+@media(max-width:767px){.import-layout{grid-template-columns:1fr;gap:var(--space-4)}.import-source{flex-wrap:wrap}.import-details{grid-template-columns:1fr 1fr}.import-details .field:first-child{grid-column:1/-1}#import-text{min-height:240px}.import-actions button{white-space:normal}.excerpt-tools input{width:100px}}
+
+.custom-size-controls{display:flex;align-items:center;gap:var(--space-2)}
+#custom-passage-size{width:96px;min-width:0}
+input[type="number"]{appearance:textfield;-moz-appearance:textfield}
+input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 </style>
 </head>
 <body>
 <svg class="icon-sprite" aria-hidden="true"><symbol id="icon-settings" viewBox="0 0 24 24">
   <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" />
   <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
-</symbol><symbol id="icon-dots-vertical" viewBox="0 0 24 24">
-  <path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
-  <path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
-  <path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
-</symbol><symbol id="icon-star" viewBox="0 0 24 24">
-  <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245" />
 </symbol><symbol id="icon-arrow-left" viewBox="0 0 24 24">
   <path d="M5 12l14 0" />
   <path d="M5 12l6 6" />
@@ -1882,7 +1657,7 @@ body:has(dialog[open]) {
 <div id="reading-demo" class="demo-passage" role="img" aria-label="Scripted example, not a recording: Ben, reads and a are correct; short is skipped; story is wrong; aloud is repeated."><span class="demo-word correct" data-demo-status="correct">Ben</span> <span class="demo-word correct" data-demo-status="correct">reads</span> <span class="demo-word correct" data-demo-status="correct">a</span> <span class="demo-word omission" data-demo-status="omission">short</span> <span class="demo-word substitution" data-demo-status="substitution">story</span> <span class="demo-word repeated" data-demo-status="repeated">aloud.</span></div>
 </section>
 </div>
-<p class="validation-limit">Speech recognition is not yet validated for children.</p>
+
 <details class="about-booklat"><summary>About Booklat</summary><div class="landing-details">
 <section><h2>From passage to report</h2><p>Pick a passage. The child reads aloud. Tap words to correct suggested marks. Save the reading offline and export the scores as CSV.</p><p class="report-facts">Time, words per minute, accuracy and Phil-IRI component criteria.</p></section>
 <section class="landing-privacy"><h2>On your laptop</h2><p>After setup, Booklat works without internet. Its local server listens only on 127.0.0.1. Voice recording is optional and saved in the local database when enabled.</p></section>
@@ -1892,25 +1667,25 @@ body:has(dialog[open]) {
 <div class="intro"><div><h1>Let’s hear you read.</h1></div><div class="welcome"><svg class="mascot" data-pose="welcome" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs wave-arm" d="M40 82 24 69 20 52"/><path class="ink limbs" d="M89 83 106 68 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M59 81q8 9 16 0"/></svg><p>Hi, I’m Tupi.</p></div></div>
 <div id="draft-banner" class="banner" hidden><p id="draft-message"></p><div class="actions"><button id="draft-resume">Continue reading</button><button id="draft-review">Review confirmed marks</button><button id="draft-discard">Discard draft</button></div></div><div id="setup-error" class="banner" role="alert" hidden></div>
 <form id="setup-form" class="card setup-grid">
-<div class="setup-controls"><h2>Before you begin</h2>
+<div class="setup-controls"><h2>Choose a reading</h2>
 <div class="field"><label for="learner">Learner name</label><input id="learner" name="learner" maxlength="60" required autocomplete="off"></div>
-<div class="field passage-picker"><label for="passage-search">Search passages</label><div class="passage-search"><input id="passage-search" type="search" maxlength="200" aria-controls="passage-list" autocomplete="off"><button id="clear-passage-search" type="button" aria-label="Clear passage search">Clear</button></div><div class="passage-filters"><div><label for="passage-grade">Grade</label><select id="passage-grade"><option value="all">All grades</option></select></div><div><label for="passage-language">Language</label><select id="passage-language"><option value="all">All languages</option><option value="en">English</option><option value="tl">Filipino</option></select></div><label class="check favorite-filter"><input id="favorites-only" type="checkbox"> Favorites only</label><button id="reset-passage-filters" type="button">Reset filters</button></div><p id="passage-count" class="hint" role="status"></p><div id="passage-list" class="passage-list" role="listbox" aria-label="Reading passage titles" tabindex="0"></div><p id="passage-empty" class="hint" hidden>No matching passages. Try another title or reset the filters. Favorites are saved using the button beside the selected title.</p><select id="passage-select" hidden aria-hidden="true" tabindex="-1"></select></div>
+<div class="field passage-picker"><label for="passage-search">Passages</label><div class="passage-search"><input id="passage-search" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-haspopup="listbox" type="search" placeholder="Search titles" maxlength="200" aria-controls="passage-list" autocomplete="off"><button id="clear-passage-search" type="button" aria-label="Clear passage search">Clear</button><button id="toggle-passages" type="button" aria-label="Show passages" aria-controls="passage-dropdown" aria-expanded="false">⌄</button></div><div id="passage-dropdown" class="passage-dropdown" hidden><p id="passage-count" hidden class="hint" role="status"></p><div id="passage-list" class="passage-list" role="listbox" aria-label="Reading passage titles" tabindex="0"></div><p id="passage-empty" class="hint" hidden>No matching passages.</p></div><select id="passage-select" hidden aria-hidden="true" tabindex="-1"></select></div>
 <input id="engine-select" type="hidden" value="vosk">
 <button id="start" class="primary start" disabled>Start reading <span aria-hidden="true">→</span></button><p id="start-hint" class="hint">Waiting for the speech model…</p></div>
-<div id="passage-preview" class="preview"><span id="preview-title" class="eyebrow">Passage preview</span><div class="preview-heading"><h2 id="preview-heading"></h2><details id="passage-menu" class="passage-menu"><summary class="icon-button" aria-label="Passage options" title="Passage options"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-dots-vertical"></use></svg></summary><div class="passage-menu-items"><button id="favorite-passage" class="quiet-button" type="button" aria-pressed="false"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-star"></use></svg><span id="favorite-label">Add favorite</span></button><p>Favorites stay in this browser.</p></div></details><button id="expand-preview" class="icon-button" type="button" data-expand="preview" aria-haspopup="dialog" aria-label="Expand passage preview" title="Expand passage preview"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-expand"></use></svg></button></div><p id="preview"></p></div>
+<div id="passage-preview" class="preview"><span id="preview-title" hidden>Passage preview</span><div class="preview-heading"><h2 id="preview-heading"></h2><button id="expand-preview" class="icon-button" type="button" data-expand="preview" aria-haspopup="dialog" aria-label="Expand passage preview" title="Expand passage preview"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-expand"></use></svg></button></div><p id="preview"></p></div>
 </form>
 <details id="library" class="card library"><summary>Add your own reading material</summary>
-<p class="hint">Import TXT, Markdown, PDF, DOCX, or EPUB (up to 10 MB), or paste notes. Choose an excerpt of up to 2,000 words. Scanned PDFs need OCR before import.</p>
-<div class="field"><label for="import-file">Choose a document</label><input id="import-file" type="file" accept=".txt,.md,.pdf,.docx,.epub"></div>
+
+<div class="import-source"><button id="choose-document" type="button">Choose document</button><span id="import-filename" role="status"></span><input id="import-file" type="file" accept=".txt,.md,.pdf,.docx,.epub" hidden aria-label="Choose a document"></div>
 <div id="excerpt-tools" class="actions excerpt-tools" hidden><label for="excerpt-start">Start at word</label><input id="excerpt-start" type="number" value="1" min="1"><label for="excerpt-length">Words</label><input id="excerpt-length" type="number" value="300" min="1" max="2000"><button id="use-excerpt" type="button">Use excerpt</button></div>
-<div class="actions"><button id="split-book" type="button">Save entire text as book sections</button></div><p class="hint">Uses the imported document, or pasted text below. Section length uses the Words setting (50–2,000). Review the extracted document before saving.</p><form id="passage-form">
-<div class="library-grid"><div class="field"><label for="import-title">Passage title</label><input id="import-title" maxlength="100" required></div><div class="field"><label for="import-language">Language</label><select id="import-language"><option value="en">English</option><option value="tl">Filipino</option></select></div><div class="field"><label for="import-grade">Grade</label><input id="import-grade" type="number" min="1" max="12" value="3" required></div></div>
-<div class="field"><label for="import-text">Review and edit the words</label><textarea id="import-text" maxlength="30000" required></textarea></div>
-<p id="import-count" class="hint">0 words · up to 2,000 per passage</p><p id="import-message" class="hint" role="status"></p>
-<button id="save-passage" type="submit">Save passage offline</button></form></details>
-<section class="recent"><div class="section-top"><h2>Offline reading history</h2><div class="history-actions"><label class="check"><input id="history-colors" type="checkbox"> Category colors</label><details class="history-downloads"><summary class="quiet-button">Save a copy</summary><div class="download-options"><a class="quiet-button" href="/api/export.csv" download>Download scores</a><small>Spreadsheet file (.csv)</small><a class="quiet-button" href="/api/backup.sqlite3" download>Back up this computer</a><small>Includes the library, readings and saved voice recordings.</small></div></details></div></div>
+<form id="passage-form"><div class="import-layout">
+<div class="library-grid import-details"><div class="field"><label for="import-title">Passage title</label><input id="import-title" maxlength="100" required></div><div class="field"><label for="import-language">Language</label><select id="import-language"><option value="en">English</option><option value="tl">Filipino</option></select></div><div class="field"><label for="import-grade">Grade</label><input id="import-grade" type="number" min="1" max="12" value="3" required></div></div>
+<div class="field import-editor"><label for="import-text">Passage text</label><textarea id="import-text" maxlength="30000" required></textarea></div>
+</div><p id="import-count" class="hint">0 words · up to 2,000 per passage</p><p id="import-message" class="hint" role="status"></p>
+<div class="actions import-actions"><button id="save-passage" class="primary" type="submit">Save passage</button></div></form></details>
+<section class="recent"><div class="section-top"><h2>Reading history</h2><div class="history-actions"><label class="check"><input id="history-colors" type="checkbox"> Category colors</label><details class="history-downloads"><summary class="quiet-button">Save a copy</summary><div class="download-options"><a class="quiet-button" href="/api/export.csv" download>Download scores</a><a class="quiet-button" href="/api/backup.sqlite3" download>Back up this computer</a></div></details></div></div>
 <form id="history-search-form" class="history-tools"><label for="history-query">Search readings</label><input id="history-query" maxlength="200" aria-label="Search readings"><button type="submit">Search</button></form>
-<div id="history-viewport" class="card table-wrap history-viewport" tabindex="0" role="region" aria-label="Reading history, scroll for more readings"><table id="recent-table" hidden><thead><tr><th>Learner / date</th><th>Passage</th><th>WPM</th><th>Accuracy</th><th>Level</th><th>Review</th></tr></thead><tbody id="recent-body"></tbody></table><div id="recent-empty" class="empty">No readings saved yet.</div></div><p id="history-status" class="hint" role="status"></p><p class="hint">Saved on this computer. Available without internet after setup. Original document uploads are not retained.</p></section>
+<div id="history-viewport" class="card table-wrap history-viewport" tabindex="0" role="region" aria-label="Reading history, scroll for more readings"><table id="recent-table" hidden><thead><tr><th>Learner / date</th><th>Passage</th><th>WPM</th><th>Accuracy</th><th>Level</th><th>Review</th></tr></thead><tbody id="recent-body"></tbody></table><div id="recent-empty" class="empty">No readings saved yet.</div></div><p id="history-status" class="hint" role="status"></p></section>
 </section>
 <section id="reading-screen" hidden>
 <div class="reading-top"><div><span class="eyebrow" id="reading-learner"></span><h1 id="reading-title"></h1></div><div class="actions"><span id="timer" class="clock">00:00</span><span id="latency" class="chip">Marking delay: :</span><button id="stop" class="danger">Stop</button></div></div>
@@ -1923,26 +1698,26 @@ body:has(dialog[open]) {
 <div class="results-heading"><span id="results-state" class="eyebrow">Reading complete</span><h1 id="results-learner"></h1><p id="results-title" class="muted"></p></div>
 <p id="score-status" class="status" role="status"></p><div id="score-error" class="banner" role="alert" hidden><p id="score-message"></p><button id="retry-score">Retry scoring</button></div>
 <div id="no-speech" class="note" hidden>No speech was detected. <button id="try-again">Try again</button></div>
-<section id="recording-panel" class="card recording-panel"><h2>Voice recording</h2><p id="recording-message" class="hint" role="status"></p><div id="recording-controls" hidden><label for="recording-segment">Recording portion</label><select id="recording-segment"></select><audio id="recording-player" controls preload="metadata" class="recording-player"></audio><p id="playback-word" class="hint" aria-live="off"></p><div class="actions"><a id="download-recording" class="button" download="reading.wav">Download WAV</a><button id="delete-recording" type="button">Delete saved voice recording</button></div></div></section><div class="tiles"><div class="card tile"><small>Time</small><div id="result-time" class="value">n/a</div></div><div class="card tile"><small>Words per minute</small><div id="result-wpm" class="value">n/a</div></div><div class="card tile"><small>Accuracy</small><div id="result-accuracy" class="value">n/a</div></div><div class="card tile"><small>App word-reading category</small><div id="result-level" class="value">n/a</div><div class="report-companion pose pose-wait"><svg class="mascot nothing-heard" data-pose="nothing-heard" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 82 23 76 16 79 M89 82 105 75 116 78 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M61 82q6 4 12 0"/></svg></div><div class="report-companion pose pose-cheer"><svg class="mascot cheering" data-pose="cheering" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 80 23 48 M89 80 109 43 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><path class="ink" d="M53 69q4-7 8 0 M72 69q4-7 8 0"/><path class="ink" d="M59 81q8 9 16 0"/></svg></div><div class="report-companion pose pose-encourage"><svg class="mascot encouraging" data-pose="encouraging" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 82 23 75 M89 80 111 73 119 78 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M59 81q8 9 16 0"/></svg></div><div class="report-companion pose pose-support"><svg class="mascot supportive" data-pose="supportive" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 82 28 92 M89 82 100 94 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M59 81q8 9 16 0"/></svg></div></div></div>
-<section class="card grading-panel"><h2>Phil-IRI reading criteria and scores</h2><p id="philiri-status" class="note" role="status"></p><div class="table-wrap"><table><thead><tr><th>Level</th><th>Word recognition</th><th>Comprehension</th><th>Meaning</th></tr></thead><tbody id="rubric-body"></tbody></table></div><p id="philiri-scores"></p><p id="philiri-calculation" class="hint"></p><form id="grading-form"><div class="library-grid"><div class="field"><label for="reviewed-miscues">Teacher-reviewed total miscues (optional)</label><input id="reviewed-miscues" type="number" min="0" max="100000" step="1"><span class="hint">Enter the complete reviewed error count, including other miscue types. This replaces the automatic count; do not add it again.</span></div><div class="field"><label for="comprehension-correct">Comprehension: correct answers</label><input id="comprehension-correct" type="number" min="0" max="1000" step="1"></div><div class="field"><label for="comprehension-total">Comprehension: questions administered</label><input id="comprehension-total" type="number" min="1" max="1000" step="1"></div></div><button type="submit">Apply grading scores</button></form><p class="honesty">Component scores only; no overall Phil-IRI placement is assigned. Use appropriate passages and teacher-administered comprehension questions. Speech recognition cannot assess comprehension. WPM does not determine these levels.</p><p id="rubric-source" class="hint"></p></section><p id="breakdown" class="breakdown"></p><p id="partial" class="note" hidden>Stopped before the end of the passage.</p><p id="completion-message" class="note" role="status"></p><div class="actions"><label for="review-filter">Review words</label><select id="review-filter" class="review-filter"><option value="all">All words</option><option value="substitution">Wrong</option><option value="omission">Skipped</option><option value="repeated">Repeated</option><option value="not_reached">Not read</option></select></div><p id="review-count" class="hint"></p><div class="passage-toolbar"><button id="expand-results" class="icon-button" type="button" data-expand="results" aria-haspopup="dialog" aria-label="Expand passage" title="Expand passage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-expand"></use></svg></button></div><div id="results-passage" class="card passage" aria-label="Editable reading results"></div><div class="legend" aria-label="Result marks"><span>✓ correct</span><span>✗ wrong</span><span>⊘ skipped</span><span>↻ repeated</span><span>Unmarked: not read</span></div><p class="honesty">Marks are suggestions. Tap any word to correct it. Level reflects word reading only.</p>
+<div class="tiles"><div class="card tile"><small>Time</small><div id="result-time" class="value">n/a</div></div><div class="card tile"><small>Words per minute</small><div id="result-wpm" class="value">n/a</div></div><div class="card tile"><small>Accuracy</small><div id="result-accuracy" class="value">n/a</div></div><div class="card tile"><small>App word-reading category</small><div id="result-level" class="value">n/a</div><div class="report-companion pose pose-wait"><svg class="mascot nothing-heard" data-pose="nothing-heard" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 82 23 76 16 79 M89 82 105 75 116 78 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M61 82q6 4 12 0"/></svg></div><div class="report-companion pose pose-cheer"><svg class="mascot cheering" data-pose="cheering" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 80 23 48 M89 80 109 43 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><path class="ink" d="M53 69q4-7 8 0 M72 69q4-7 8 0"/><path class="ink" d="M59 81q8 9 16 0"/></svg></div><div class="report-companion pose pose-encourage"><svg class="mascot encouraging" data-pose="encouraging" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 82 23 75 M89 80 111 73 119 78 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M59 81q8 9 16 0"/></svg></div><div class="report-companion pose pose-support"><svg class="mascot supportive" data-pose="supportive" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs" d="M40 82 28 92 M89 82 100 94 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M59 81q8 9 16 0"/></svg></div></div></div>
+<section id="recording-panel" class="card recording-panel"><h2>Voice recording</h2><p id="recording-message" class="hint" role="status"></p><div id="recording-controls" hidden><label for="recording-segment">Recording portion</label><select id="recording-segment"></select><audio id="recording-player" controls preload="metadata" class="recording-player"></audio><p id="playback-word" class="hint" aria-live="off"></p><div class="actions"><a id="download-recording" class="button" download="reading.wav">Download WAV</a><button id="delete-recording" type="button">Delete saved voice recording</button></div></div></section><section class="card grading-panel"><h2>Teacher grading</h2><p id="philiri-status" class="note" role="status"></p><div class="table-wrap"><table><thead><tr><th>Level</th><th>Word recognition</th><th>Comprehension</th><th>Meaning</th></tr></thead><tbody id="rubric-body"></tbody></table></div><p id="philiri-scores"></p><p id="philiri-calculation" class="hint"></p><form id="grading-form"><div class="library-grid"><div class="field"><label for="reviewed-miscues">Teacher-reviewed total miscues (optional)</label><input id="reviewed-miscues" type="number" min="0" max="100000" step="1"></div><div class="field"><label for="comprehension-correct">Comprehension: correct answers</label><input id="comprehension-correct" type="number" min="0" max="1000" step="1"></div><div class="field"><label for="comprehension-total">Comprehension: questions administered</label><input id="comprehension-total" type="number" min="1" max="1000" step="1"></div></div><button type="submit">Apply grading scores</button></form><p id="rubric-source" class="hint"></p></section><p id="breakdown" class="breakdown"></p><p id="partial" class="note" hidden>Stopped before the end of the passage.</p><p id="completion-message" class="note" role="status"></p><div class="actions"><label for="review-filter">Review words</label><select id="review-filter" class="review-filter"><option value="all">All words</option><option value="substitution">Wrong</option><option value="omission">Skipped</option><option value="repeated">Repeated</option><option value="not_reached">Not read</option></select></div><p id="review-count" class="hint"></p><div class="passage-toolbar"><button id="expand-results" class="icon-button" type="button" data-expand="results" aria-haspopup="dialog" aria-label="Expand passage" title="Expand passage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-expand"></use></svg></button></div><div id="results-passage" class="card passage" aria-label="Editable reading results"></div><div class="legend" aria-label="Result marks"><span>✓ correct</span><span>✗ wrong</span><span>⊘ skipped</span><span>↻ repeated</span><span>Unmarked: not read</span></div>
 <div class="actions result-actions"><button id="save" class="primary">Save result</button><a class="button" href="/api/export.csv" download>Download CSV</a><button id="next-section" hidden>Next book section</button><a id="download-grade-report" class="button" hidden download>Download grading report</a><button id="new-reading">New reading</button></div>
 </section>
 <details id="debug-panel" class="card speech-diagnostics" hidden open>
 <summary>Speech debugger</summary>
-<p class="hint">Local, in-memory diagnostics. Last 100 chunks. The debugger itself does not record audio; the separate voice-recording option controls history audio. Starting a new reading clears this report.</p>
+
 <p id="debug-audio" role="status">Waiting for microphone frames…</p>
-<p class="hint">Input RMS above the calibrated threshold suggests speech; clipping suggests the microphone is too loud. A processing/audio ratio above 1 means this chunk took longer to process than its audio duration. Processing includes any wait for the shared model.</p>
+
 <button id="copy-debug" type="button">Copy debug report</button>
 <p id="debug-summary" class="hint">Waiting for the first recognized chunk…</p>
 <div id="debug-chunks" class="debug-chunks"></div>
 </details>
-<section id="settings-screen" class="settings-page" hidden aria-labelledby="settings-heading"><div class="settings-heading"><button id="close-settings" class="quiet-button" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-arrow-left"></use></svg>Back</button><h1 id="settings-heading" tabindex="-1">Settings</h1><p>Changes apply to the next reading on this computer.</p></div><div class="settings-layout"><section class="settings-group" aria-labelledby="settings-reading"><h2 id="settings-reading">Reading</h2><div class="field"><label for="validation-mode">When to show word validation</label><select id="validation-mode"><option value="live">As I read</option><option value="auto_finish">When reading finishes</option><option value="after_pause">After a pause</option></select><p class="hint">Live marks may change. Pause mode highlights words as you read, then shows marks after a phrase. Stop is available in every mode.</p></div><div class="field"><label for="finish-delay">Automatic finish delay</label><select id="finish-delay"><option value="1">1 second</option><option value="2" selected>2 seconds</option><option value="3">3 seconds</option></select><p class="hint">Speaking again restarts the delay. The ending must be confirmed before the timer starts.</p></div><label class="check"><input id="follow-line" type="checkbox" checked> Keep the active line visible</label></section><section class="settings-group" aria-labelledby="settings-microphone"><h2 id="settings-microphone">Microphone</h2><p class="hint">Speak to check the volume before starting a reading. Check audio is never recorded.</p><button id="mic-check" type="button">Check microphone</button><div class="mic-check-display"><div id="mic-level" class="mic-level" role="meter" aria-label="Live microphone input level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Microphone check idle"><span id="mic-level-fill"></span></div><span id="mic-level-label" class="hint">Idle</span></div><p id="mic-message" class="hint" role="status">The meter stays live while you speak. Stop the check when finished.</p><p id="model-chip" class="chip loading" role="status">Preparing reading…</p></section><section class="settings-group" aria-labelledby="settings-history"><h2 id="settings-history">Saved readings</h2><label class="check"><input id="autosave" type="checkbox" checked> Save completed readings on this computer</label><label class="check"><input id="record-voice" type="checkbox" checked> Save the learner's voice with each reading</label><p class="hint">Saved audio is included in backups. You can delete it from a reading's results.</p></section><details class="settings-group settings-advanced"><summary>Advanced</summary><label class="check"><input id="debug-enabled" type="checkbox"> Show speech diagnostics</label><p class="hint">Show recognized words and processing details during a reading.</p><span id="resource-status" hidden></span></details></div></section>
+<section id="settings-screen" class="settings-page" hidden aria-labelledby="settings-heading"><div class="settings-heading"><button id="close-settings" class="quiet-button" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-arrow-left"></use></svg>Back</button><h1 id="settings-heading" tabindex="-1">Settings</h1></div><div class="settings-layout"><section class="settings-group" aria-labelledby="settings-reading"><h2 id="settings-reading">Reading</h2><div class="field"><label for="validation-mode">When to show word validation</label><select id="validation-mode"><option value="live">As I read</option><option value="auto_finish">When reading finishes</option><option value="after_pause">After a pause</option></select></div><div class="field"><label for="finish-delay">Automatic finish delay</label><select id="finish-delay"><option value="1">1 second</option><option value="2" selected>2 seconds</option><option value="3">3 seconds</option></select></div><label class="check"><input id="follow-line" type="checkbox" checked> Keep the active line visible</label></section><section class="settings-group" aria-labelledby="settings-microphone"><h2 id="settings-microphone">Microphone</h2><button id="mic-check" type="button">Check microphone</button><div class="mic-check-display"><div id="mic-level" class="mic-level" role="meter" aria-label="Live microphone input level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Microphone check idle"><span id="mic-level-fill"></span></div><span id="mic-level-label" class="hint">Idle</span></div><p id="mic-message" class="hint" role="status"></p><p id="model-chip" class="chip loading" role="status">Preparing reading…</p></section><section class="settings-group" aria-labelledby="settings-history"><h2 id="settings-history">Saved readings</h2><label class="check"><input id="autosave" type="checkbox" checked> Save completed readings</label><label class="check"><input id="record-voice" type="checkbox" checked> Save voice recordings</label></section><details class="settings-group settings-advanced"><summary>Advanced</summary><label class="check"><input id="debug-enabled" type="checkbox"> Show speech diagnostics</label><span id="resource-status" hidden></span></details></div></section>
 </main>
 <div id="editor" class="editor" role="group" aria-label="Correct selected word" hidden><div id="editor-title" class="editor-title"></div><div id="editor-heard" class="editor-title" aria-live="polite"></div><button id="play-word" type="button" hidden>Play from this word</button><div class="actions"><button data-status="correct">✓ Correct</button><button data-status="substitution">✗ Wrong</button><button data-status="omission">⊘ Skipped</button><button data-status="repeat">↻ Repeated</button><button data-status="not_reached">– Not read</button></div></div>
 <div id="toast" class="toast" role="status" hidden></div>
-<footer>Everything runs on this device. Voice recordings stay here when enabled. <a id="back-to-top" href="#landing-top">Back to top</a></footer>
+<footer><a id="back-to-top" href="#landing-top">Back to top</a></footer>
 
-<dialog id="passage-dialog" class="passage-dialog" aria-labelledby="large-passage-title"><div class="dialog-heading"><div><span id="large-passage-label" class="eyebrow">Reading passage</span><h2 id="large-passage-title"></h2></div><div class="actions"><label for="passage-size">Text size</label><select id="passage-size"><option value="32">32 px</option><option value="44" selected>44 px</option><option value="56">56 px</option><option value="72">72 px</option></select><button id="toggle-projector" type="button" aria-pressed="false" hidden>Focus current line</button><button id="overlay-stop" class="danger" type="button" hidden>Stop reading</button><button id="close-passage" class="icon-button" type="button" aria-label="Collapse passage" title="Collapse passage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-collapse"></use></svg></button></div></div><p id="large-passage-progress" class="hint" role="status"></p><div id="large-passage-body" class="large-passage-body"><div id="projector-line" class="passage projector-line" aria-label="Current reading line" hidden></div></div></dialog>
+<dialog id="passage-dialog" class="passage-dialog" aria-labelledby="large-passage-title"><div class="dialog-heading"><div><span id="large-passage-label" class="eyebrow">Reading passage</span><h2 id="large-passage-title"></h2></div><div class="actions"><label for="passage-size">Text size</label><select id="passage-size"><option value="32">32 px</option><option value="44" selected>44 px</option><option value="56">56 px</option><option value="72">72 px</option><option value="custom">Custom</option></select><div id="custom-size-controls" class="custom-size-controls" hidden><label for="custom-passage-size">Size (px)</label><input id="custom-passage-size" type="text" inputmode="decimal" value="44" autocomplete="off" aria-label="Custom text size in pixels"></div><button id="toggle-projector" type="button" aria-pressed="false" hidden>Focus current line</button><button id="overlay-stop" class="danger" type="button" hidden>Stop reading</button><button id="close-passage" class="icon-button" type="button" aria-label="Collapse passage" title="Collapse passage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-collapse"></use></svg></button></div></div><p id="large-passage-progress" class="hint" role="status"></p><div id="large-passage-body" class="large-passage-body"><div id="projector-line" class="passage projector-line" aria-label="Current reading line" hidden></div></div></dialog>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
@@ -2003,7 +1778,7 @@ async function api(path, options) {
 }
 function toast(message) { clearTimeout(toastTimeout); $('toast').textContent = message; $('toast').hidden = false; toastTimeout = setTimeout(() => $('toast').hidden = true, 3000); }
 function showScreen(name) {
-  closePassageView();$('passage-menu').open=false;
+  closePassageView();
   if(screen==='settings'&&name!=='settings'&&micChecking)micStopRequested=true;
   screen=name;for(const page of ['landing','setup','reading','results','settings'])$(page+'-screen').hidden=page!==name;
   $('back-to-top').hidden=name!=='landing';closeEditor(false);$('mic-check').disabled=name==='reading';$('open-settings').disabled=name==='reading'||starting;
@@ -2056,11 +1831,6 @@ async function openReading(id) {
   revision=0;scoreRequest++;await resultsScreen(false);
 }
 function populatePassages(selectedId) {
-  const previousGrade=$('passage-grade').value;
-  $('passage-grade').replaceChildren(new Option('All grades','all'));
-  for(const grade of [...new Set(passages.map(p=>p.grade))].filter(Number.isFinite).sort((a,b)=>a-b))$('passage-grade').append(new Option('Grade '+grade,String(grade)));
-  $('passage-grade').value=[...$('passage-grade').options].some(o=>o.value===previousGrade)?previousGrade:'all';
-  if(selectedId){$('passage-grade').value='all';$('passage-language').value='all';$('favorites-only').checked=false;}
   $('passage-select').replaceChildren();
   for(const p of passages){const option=document.createElement('option');option.value=p.id;option.textContent=`${p.title} · ${p.language==='tl'?'Filipino':'English'} · ${p.word_count} words${p.custom?', saved passage':''}`;$('passage-select').append(option);}
   if(selectedId){$('passage-select').value=selectedId;$('passage-search').value='';}
@@ -2077,21 +1847,21 @@ function useExcerpt() {
   $('import-text').value=importWords.slice(start,start+count).join(' ');importCount();
 }
 async function importDocument() {
-  const file=$('import-file').files[0];if(!file)return;
+  const file=$('import-file').files[0];if(!file)return;$('import-filename').textContent=file.name;
   if(file.size>10*1024*1024){$('import-message').textContent='Choose a file up to 10 MB.';return;}
-  $('save-passage').disabled=true;$('import-file').disabled=true;$('import-message').textContent='Reading your document locally…';
+  $('save-passage').disabled=true;$('import-file').disabled=true;$('choose-document').disabled=true;$('import-message').textContent='Reading your document locally…';
   try {
     const doc=await api('/api/import?'+new URLSearchParams({filename:file.name}),{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:file});
     importWords=doc.text.split(/\s+/);importSource=doc.source;$('import-title').value=doc.title;$('excerpt-start').value='1';$('excerpt-tools').hidden=false;useExcerpt();
     $('import-message').textContent=`${doc.word_count.toLocaleString()} words extracted${doc.truncated?' (preview limited to the beginning of the document)':''}. Review the excerpt and select its language before saving.`;
   } catch(error){$('import-message').textContent=error.message;}
-  finally {$('import-file').disabled=false;importCount();}
+  finally {$('import-file').disabled=false;$('choose-document').disabled=false;importCount();}
 }
 async function savePassage(event) {
   event.preventDefault();$('save-passage').disabled=true;
   try {
     const p=await api('/api/passages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:$('import-title').value,text:$('import-text').value,language:$('import-language').value,grade:Number($('import-grade').value),source:importSource})});
-    passages.push(p);populatePassages(p.id);$('library').open=false;$('passage-form').reset();$('import-file').value='';importWords=[];importSource='Pasted text';$('excerpt-tools').hidden=true;$('import-message').textContent='';importCount();toast('Passage saved in your offline library.');
+    passages.push(p);populatePassages(p.id);$('library').open=false;$('passage-form').reset();$('import-file').value='';$('import-filename').textContent='';importWords=[];importSource='Pasted text';$('excerpt-tools').hidden=true;$('import-message').textContent='';importCount();toast('Passage saved in your offline library.');
   } catch(error){$('import-message').textContent=error.message;importCount();}
 }
 const WORD_STATUS = {correct:'✓', substitution:'✗', omission:'⊘'};
@@ -2476,14 +2246,8 @@ function restoreBookPlace(){
   if(id&&passages.some(p=>p.id===id)){$('passage-select').value=id;applyEngineHealth();const chosen=passages.find(p=>p.id===id);$('preview').textContent=chosen.text;$('preview-heading').textContent=chosen.title;renderPassageList();}
 }
 function updateBookPlace(){const p=session.passage,next=passages.find(q=>q.book_id&&q.book_id===p.book_id&&q.section===p.section+1);const complete=session.marks.every(m=>m.status!=='not_reached');$('next-section').hidden=!next||!complete||session.draftReview;if(p.book_id&&!session.draftReview){const learner=$('learner').value;$('learner').value=session.learner;rememberBook(complete&&next?next:p);$('learner').value=learner;}}
-async function saveBook(){
-  const title=$('import-title').value.trim(),text=importWords.length?importWords.join(' '):$('import-text').value;
-  if(!title||!text.trim()){toast('Choose a document or paste text and enter a title.');return;}
-  $('split-book').disabled=true;
-  try{const book=await api('/api/books',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,text,language:$('import-language').value,grade:Number($('import-grade').value),source:importSource,section_words:Math.min(2000,Math.max(50,Number($('excerpt-length').value)||300))})});passages.push(...book.passages);populatePassages(book.passages[0].id);$('import-message').textContent=`Saved ${book.passages.length} sections offline. Section position is remembered per learner in this browser.`;toast('Book sections saved offline.');}catch(e){$('import-message').textContent=e.message;}finally{$('split-book').disabled=false;}
-}
 $('finish-delay').onchange=savePreferences;$('follow-line').onchange=savePreferences;
-$('mic-check').onclick=checkMicrophone;$('review-filter').onchange=()=>paint();$('split-book').onclick=saveBook;
+$('mic-check').onclick=checkMicrophone;$('review-filter').onchange=()=>paint();
 $('keep-reading').onclick=()=>{finishCancelled=true;cancelFinish();$('listening-status').textContent='Keep reading. Press Stop when finished.';};
 $('draft-resume').onclick=()=>recoverDraft(false).catch(e=>toast(e.message));$('draft-review').onclick=()=>recoverDraft(true).catch(e=>toast(e.message));$('draft-discard').onclick=()=>{try{localStorage.removeItem('booklat-draft');}catch{}showDraft();};
 $('next-section').onclick=async()=>{const previous=session,next=passages.find(p=>p.book_id&&p.book_id===previous.passage.book_id&&p.section===previous.passage.section+1);await newReading();if(next){$('learner').value=previous.learner;$('passage-select').value=next.id;$('passage-select').dispatchEvent(new Event('change'));rememberBook(next);startState();}};
@@ -2494,27 +2258,29 @@ $('copy-debug').onclick=async()=>{
   try{await navigator.clipboard.writeText(JSON.stringify(report,null,2));toast('Debug report copied. It contains recognized speech, but no audio or learner name.');}catch{toast('Clipboard access failed. Expand a chunk and select its text to copy.');}
 };
 
-function favoriteIds(){try{const ids=JSON.parse(localStorage.getItem('booklat-favorites')||'[]');return new Set(Array.isArray(ids)?ids.filter(id=>typeof id==='string'):[]);}catch{return new Set();}}
-function updateFavoriteButton(){const p=passages.find(p=>p.id===$('passage-select').value),favorite=p&&favoriteIds().has(p.id);$('favorite-passage').disabled=!p;$('favorite-passage').setAttribute('aria-pressed',String(Boolean(favorite)));$('favorite-label').textContent=favorite?'Remove favorite':'Add favorite';}
-$('favorite-passage').onclick=()=>{const id=$('passage-select').value;if(!id)return;const ids=favoriteIds();if(ids.has(id))ids.delete(id);else ids.add(id);try{localStorage.setItem('booklat-favorites',JSON.stringify([...ids]));renderPassageList();$('passage-menu').open=false;}catch{toast('Favorites could not be saved in this browser.');}};
 function renderPassageList(){
   const query=$('passage-search').value.trim().toLocaleLowerCase(),selectedId=$('passage-select').value;
-  const favorites=favoriteIds(),grade=$('passage-grade').value,language=$('passage-language').value;
-  const matching=passages.filter(p=>`${p.title} ${p.language==='tl'?'Filipino Tagalog':'English'}`.toLocaleLowerCase().includes(query)&&(grade==='all'||String(p.grade)===grade)&&(language==='all'||p.language===language)&&(!$('favorites-only').checked||favorites.has(p.id)));
-  updateFavoriteButton();
+  const matching=passages.filter(p=>`${p.title} ${p.language==='tl'?'Filipino Tagalog':'English'}`.toLocaleLowerCase().includes(query));
+  if(!query)$('passage-search').placeholder=passages.find(p=>p.id===selectedId)?.title||'Search titles';
   $('passage-list').replaceChildren();
   for(const p of matching){const option=document.createElement('div');option.className='passage-option';option.id='passage-option-'+p.id;option.dataset.passageId=p.id;option.setAttribute('role','option');option.setAttribute('aria-selected',String(p.id===selectedId));option.tabIndex=p.id===selectedId?0:-1;
-    const title=document.createElement('strong');title.textContent=p.title;if(favorites.has(p.id)){const star=document.createElementNS('http://www.w3.org/2000/svg','svg');star.classList.add('icon','favorite-indicator');star.setAttribute('viewBox','0 0 24 24');star.setAttribute('aria-hidden','true');const use=document.createElementNS('http://www.w3.org/2000/svg','use');use.setAttribute('href','#icon-star');star.append(use);title.prepend(star);option.setAttribute('aria-label',p.title+', favorite');}option.title=p.title+(favorites.has(p.id)?' · Favorite':'');
+    const title=document.createElement('strong');title.textContent=p.title;option.title=p.title;
     const meta=document.createElement('small');meta.textContent=`${p.language==='tl'?'Filipino':'English'}, grade ${p.grade} · ${p.word_count} words${p.custom?', saved passage':''}`;option.append(title,meta);$('passage-list').append(option);}
   $('passage-count').textContent=`${matching.length} of ${passages.length} passages${matching.length>4?' · scroll for more':''}`;
   $('passage-empty').hidden=matching.length>0;
   if(matching.length&&!matching.some(p=>p.id===selectedId))$('passage-list').firstElementChild.tabIndex=0;
 }
-function selectPassage(id){$('passage-select').value=id;$('passage-select').dispatchEvent(new Event('change'));$('passage-list').querySelector('[aria-selected="true"]')?.focus();}
-$('passage-search').oninput=renderPassageList;
-for(const id of ['passage-grade','passage-language','favorites-only'])$(id).onchange=renderPassageList;
-$('reset-passage-filters').onclick=()=>{$('passage-search').value='';$('passage-grade').value='all';$('passage-language').value='all';$('favorites-only').checked=false;renderPassageList();$('passage-search').focus();};
-window.addEventListener('storage',e=>{if(e.key==='booklat-favorites')renderPassageList();});
+function setPassageDropdown(open){$('passage-dropdown').hidden=!open;$('passage-search').setAttribute('aria-expanded',String(open));$('toggle-passages').setAttribute('aria-expanded',String(open));}
+function selectPassage(id){$('passage-select').value=id;$('passage-select').dispatchEvent(new Event('change'));$('passage-search').value='';$('passage-search').placeholder=passages.find(p=>p.id===id)?.title||'Search titles';renderPassageList();$('passage-search').focus();setPassageDropdown(false);}
+$('passage-search').onfocus=()=>setPassageDropdown(true);
+$('passage-search').onclick=()=>setPassageDropdown(true);
+$('toggle-passages').onclick=()=>{const open=$('passage-dropdown').hidden;$('passage-search').focus();setPassageDropdown(open);};
+$('passage-search').onkeydown=e=>{if(e.key==='ArrowDown'){e.preventDefault();setPassageDropdown(true);$('passage-list').querySelector('[role="option"]')?.focus();}else if(e.key==='Enter'&&!$('passage-dropdown').hidden){e.preventDefault();const option=$('passage-list').querySelector('[role="option"]');if(option)selectPassage(option.dataset.passageId);}};
+const passagePicker=$('passage-search').closest('.passage-picker');
+passagePicker.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();$('passage-search').focus();setPassageDropdown(false);}});
+passagePicker.addEventListener('focusout',e=>{if(!passagePicker.contains(e.relatedTarget))setPassageDropdown(false);});
+document.addEventListener('pointerdown',e=>{if(!passagePicker.contains(e.target))setPassageDropdown(false);});
+$('passage-search').oninput=()=>{renderPassageList();setPassageDropdown(true);};
 $('clear-passage-search').onclick=()=>{$('passage-search').value='';renderPassageList();$('passage-search').focus();};
 $('passage-list').onclick=e=>{const option=e.target.closest('[data-passage-id]');if(option)selectPassage(option.dataset.passageId);};
 $('passage-list').onkeydown=e=>{
@@ -2565,11 +2331,11 @@ function openPassageView(kind,trigger){
   passageAnchor=document.createComment('Passage location');target.before(passageAnchor);$('large-passage-body').append(target);
   editorAnchor=document.createComment('Editor location');$('editor').before(editorAnchor);$('passage-dialog').append($('editor'));
   $('large-passage-title').textContent=kind==='preview'?'':session.passage.title;
-  $('large-passage-label').hidden=kind==='preview';$('passage-dialog').classList.toggle('preview-expanded',kind==='preview');$('expand-preview').hidden=kind==='preview';$('passage-menu').open=false;
+  $('large-passage-label').hidden=kind==='preview';$('passage-dialog').classList.toggle('preview-expanded',kind==='preview');$('expand-preview').hidden=kind==='preview';
   $('large-passage-progress').textContent=kind==='reading'?$('reading-progress').textContent:'';
   $('toggle-projector').hidden=kind!=='reading';
   $('overlay-stop').hidden=kind!=='reading';$('overlay-stop').disabled=stopping;
-  $('passage-dialog').style.setProperty('--large-font',$('passage-size').value+'px');$('passage-dialog').showModal();
+  updatePassageSize();$('passage-dialog').showModal();
 }
 function closePassageView(){
   if(!enlargedPassage)return;
@@ -2582,7 +2348,10 @@ for(const button of document.querySelectorAll('[data-expand]'))button.onclick=()
 $('close-passage').onclick=closePassageView;
 $('passage-dialog').addEventListener('cancel',e=>{e.preventDefault();if(!$('editor').hidden){closeEditor(true,true);return;}closePassageView();});
 $('passage-dialog').addEventListener('close',closePassageView);
-$('passage-size').onchange=()=>{$('passage-dialog').style.setProperty('--large-font',$('passage-size').value+'px');if(projectorMode)measureProjectorLines();};
+function updatePassageSize(){const custom=$('passage-size').value==='custom',input=$('custom-passage-size');$('custom-size-controls').hidden=!custom;const raw=custom?input.value.trim():$('passage-size').value,size=Number(raw),valid=/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw)&&Number.isFinite(size)&&size>0;input.setCustomValidity(valid||!raw?'':'Enter a positive text size.');input.setAttribute('aria-invalid',String(custom&&!valid&&Boolean(raw)));if(!valid)return;$('passage-dialog').style.setProperty('--large-font',size+'px');if(projectorMode)measureProjectorLines();}
+$('passage-size').onchange=()=>{updatePassageSize();if($('passage-size').value==='custom'){$('custom-passage-size').focus();$('custom-passage-size').select();}};
+$('custom-passage-size').oninput=updatePassageSize;
+
 $('overlay-stop').onclick=()=>stopReading();
 $('open-settings').onclick=()=>{if(screen==='reading'||starting)return;if(screen==='settings'){showScreen(settingsReturn);return;}settingsReturn=screen;showScreen('settings');window.scrollTo({top:0,behavior:'auto'});$('settings-heading').focus();};
 $('close-settings').onclick=()=>{showScreen(settingsReturn);$('open-settings').focus();};
@@ -2621,15 +2390,15 @@ $('history-search-form').onsubmit=event=>{event.preventDefault();$('history-view
 $('history-viewport').addEventListener('scroll',()=>{const viewport=$('history-viewport');if(viewport.scrollTop>0&&viewport.scrollTop+viewport.clientHeight>=viewport.scrollHeight-48)recent(true);},{passive:true});
 function applyHistoryColors(){$('history-viewport').classList.toggle('history-colored',$('history-colors').checked);}
 $('history-colors').onchange=()=>{applyHistoryColors();savePreferences();};
-$('import-file').onchange=importDocument;$('use-excerpt').onclick=useExcerpt;$('import-text').oninput=importCount;$('passage-form').onsubmit=savePassage;
+$('choose-document').onclick=()=>$('import-file').click();$('import-file').onchange=importDocument;$('use-excerpt').onclick=useExcerpt;$('import-text').oninput=importCount;$('passage-form').onsubmit=savePassage;
 $('passage-select').addEventListener('change',()=>{rememberBook(passages.find(p=>p.id===$('passage-select').value));applyEngineHealth();const p=passages.find(p=>p.id===$('passage-select').value);$('preview').textContent=p?.text||'';$('preview-heading').textContent=p?.title||'';renderPassageList();});
 $('retry-score').onclick=()=>updateScore(!!session.pendingSave).catch(e=>toast(e.message));
 $('stop').onclick=stopReading;$('save').onclick=()=>updateScore(true).catch(e=>toast(e.message));
 for(const id of ['new-reading','try-again','restart'])$(id).onclick=newReading;
 $('recover-results').onclick=()=>{if(session.engine==='vosk'){session.provisional=new Set();merge(session.confirmedMarks);}const timestamps=session.marks.filter(m=>m.t0!=null);session.first_t=timestamps.length?Math.min(...timestamps.map(m=>m.t0)):null;session.last_t=timestamps.length?Math.max(...timestamps.map(m=>m.t1)):null;resultsScreen().catch(e=>toast(e.message));};
 $('editor').addEventListener('click',e=>{const button=e.target.closest('[data-status]');if(button)edit(button.dataset.status);});
-document.addEventListener('click',e=>{for(const menu of document.querySelectorAll('.passage-menu,.history-downloads'))if(!menu.contains(e.target))menu.open=false;const word=e.target.closest('.w');if(word)openEditor(Number(word.dataset.idx));else if(!e.target.closest('#editor'))closeEditor();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){const menus=[...document.querySelectorAll('.passage-menu[open],.history-downloads[open]')];if(menus.length){e.preventDefault();for(const menu of menus){menu.open=false;menu.querySelector('summary').focus();}return;}if($('passage-dialog').open&&!$('editor').hidden)e.preventDefault();closeEditor(true,true);}if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('w')){e.preventDefault();openEditor(Number(e.target.dataset.idx));if(validationVisible(Number(e.target.dataset.idx)))$('editor').querySelector('button').focus();}else if(e.code==='Space'&&screen==='reading'&&!e.target.closest('button,input,select,textarea')){e.preventDefault();stopReading();}});
+document.addEventListener('click',e=>{for(const menu of document.querySelectorAll('.history-downloads'))if(!menu.contains(e.target))menu.open=false;const word=e.target.closest('.w');if(word)openEditor(Number(word.dataset.idx));else if(!e.target.closest('#editor'))closeEditor();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const menus=[...document.querySelectorAll('.history-downloads[open]')];if(menus.length){e.preventDefault();for(const menu of menus){menu.open=false;menu.querySelector('summary').focus();}return;}if($('passage-dialog').open&&!$('editor').hidden)e.preventDefault();closeEditor(true,true);}if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('w')){e.preventDefault();openEditor(Number(e.target.dataset.idx));if(validationVisible(Number(e.target.dataset.idx)))$('editor').querySelector('button').focus();}else if(e.code==='Space'&&screen==='reading'&&!e.target.closest('button,input,select,textarea')){e.preventDefault();stopReading();}});
 window.addEventListener('beforeunload',()=>{micStopRequested=true;persistDraft();stream?.getTracks().forEach(t=>t.stop());socket?.close();});
 (async()=>{const prefs=preferences();$('engine-select').value='vosk';if(['live','auto_finish','after_pause'].includes(prefs.validation))$('validation-mode').value=prefs.validation;else if(prefs.validation==='after_stop')$('validation-mode').value='auto_finish';if(typeof prefs.autosave==='boolean')$('autosave').checked=prefs.autosave;if([1,2,3].includes(prefs.finishDelay))$('finish-delay').value=String(prefs.finishDelay);if(typeof prefs.followLine==='boolean')$('follow-line').checked=prefs.followLine;if(typeof prefs.recordVoice==='boolean')$('record-voice').checked=prefs.recordVoice;if(typeof prefs.historyColors==='boolean')$('history-colors').checked=prefs.historyColors;applyHistoryColors();importCount();pollHealth();showDraft();try{passages=await api('/api/passages');populatePassages();}catch(error){$('setup-error').textContent=error.message+' Refresh this page to try again.';$('setup-error').hidden=false;}await recent();})();
 </script>
