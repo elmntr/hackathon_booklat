@@ -24,7 +24,9 @@ def body(**changes):
 
 
 def test_health_passages(client):
-    assert client.get('/api/health').json() == dict(status='ok', model='small', loaded=False, error=None, network_needed=False)
+    health = client.get('/api/health').json()
+    assert health == dict(status='ok', model='small', loaded=False, error=None, network_needed=False,
+                         device='cpu', compute_type='int8', gpu_error=None, cpu_threads=app.state.transcriber.cpu_threads)
     assert [p['word_count'] for p in client.get('/api/passages').json()] == [48, 44]
 
 

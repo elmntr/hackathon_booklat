@@ -7,3 +7,4 @@ numpy
 pytest
 httpx
 websockets
+pypdf>=6,<7

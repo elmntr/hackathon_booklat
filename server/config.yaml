@@ -1,6 +1,10 @@
 asr:
   model: small
+  device: auto                # auto, cpu, cuda; BOOKLAT_DEVICE can override this
+  cpu_threads: 4              # leave CPU capacity for capture, Vosk, and the browser
   compute_type: int8
+  gpu_compute_type: float16   # use int8_float16 when GPU memory is limited
+  gpu_beam_size: 3
   beam_size: 1
   min_word_probability: 0.1
   ignore_words: [uh, um, ah, hmm, eh, oh, huh]

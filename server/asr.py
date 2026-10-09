@@ -106,15 +106,42 @@ class Transcriber:
         self.error: str | None = None
         self.model = None
         self.lock = threading.Lock()
+        self.device = 'cpu'
+        self.compute_type = 'int8'
+        self.gpu_error: str | None = None
+        self.cpu_threads = max(1, min(int(cfg['asr'].get('cpu_threads', 4)), os.cpu_count() or 4))
+        self.requested_device = os.environ.get('BOOKLAT_DEVICE', cfg['asr'].get('device', 'auto')).lower()
 
     def load(self) -> None:
         """Load cached weights only; missing models never trigger a download."""
         try:
             from faster_whisper import WhisperModel
-            self.model = WhisperModel(self.cfg['asr']['model'], device='cpu',
-                                      compute_type=self.cfg['asr']['compute_type'],
-                                      cpu_threads=os.cpu_count() or 4, local_files_only=True)
-            self.transcribe(np.zeros(self.cfg['chunker']['sample_rate'], dtype=np.int16), 'en', 0)
+            import ctranslate2
+            if self.requested_device not in ('auto', 'cpu', 'cuda'):
+                raise ValueError('BOOKLAT_DEVICE must be auto, cpu, or cuda.')
+            try:
+                cuda_devices = ctranslate2.get_cuda_device_count() if self.requested_device != 'cpu' else 0
+            except Exception as exc:
+                cuda_devices = 0
+                self.gpu_error = str(exc)
+            if cuda_devices > 0:
+                try:
+                    self.model = WhisperModel(self.cfg['asr']['model'], device='cuda',
+                                              compute_type=self.cfg['asr'].get('gpu_compute_type', 'float16'),
+                                              local_files_only=True)
+                    self.device, self.compute_type = 'cuda', self.cfg['asr'].get('gpu_compute_type', 'float16')
+                    self.transcribe(np.zeros(self.cfg['chunker']['sample_rate'], dtype=np.int16), 'en', 0)
+                except Exception as exc:
+                    self.gpu_error = str(exc)
+                    self.model = None
+            elif self.gpu_error is None and self.requested_device != 'cpu':
+                self.gpu_error = 'CTranslate2 did not detect an available CUDA GPU.'
+            if self.model is None:
+                self.model = WhisperModel(self.cfg['asr']['model'], device='cpu',
+                                          compute_type=self.cfg['asr']['compute_type'], cpu_threads=self.cpu_threads,
+                                          local_files_only=True)
+                self.device, self.compute_type = 'cpu', self.cfg['asr']['compute_type']
+                self.transcribe(np.zeros(self.cfg['chunker']['sample_rate'], dtype=np.int16), 'en', 0)
             self.loaded = True
             self.error = None
         except Exception as exc:
@@ -128,7 +155,8 @@ class Transcriber:
         with self.lock:
             segments, _ = self.model.transcribe(
                 audio_int16.astype(np.float32) / 32768.0, language=language,
-                beam_size=settings['beam_size'], temperature=0, condition_on_previous_text=False,
+                beam_size=settings.get('gpu_beam_size', 3) if self.device == 'cuda' else settings['beam_size'],
+                temperature=0, condition_on_previous_text=False,
                 word_timestamps=True, vad_filter=False)
             words = []
             for segment in segments:

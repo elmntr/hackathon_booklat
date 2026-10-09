@@ -1,6 +1,18 @@
 # Booklat
 
-An offline oral-reading assessor for Filipino public-school teachers. A learner reads an English or Filipino passage while words are marked on screen. Teachers can correct the suggested marks, review word-reading accuracy and reading level, and save results as CSV.
+An offline oral-reading assessor for Filipino public-school teachers. A learner reads an English or Filipino passage with live word marks, marks revealed after a pause, or automatic completion with marks revealed at the end. Teachers can correct suggestions, review accuracy and reading level, and keep reading history in a local SQLite database.
+
+## Validation, your own passages, and offline history
+
+Choose **As I read** for revisable word marks; **After a pause** for live blue highlighting with marks revealed when the recognizer confirms a phrase; or **Automatic finish** to hide marks until the confirmed ending, then stop and reveal results automatically. Automatic completion requires the last word to be recognized correctly with confirmed timing; use Stop if it is missed. Pause naturally at commas and periods: printed punctuation alone does not trigger confirmation. Whisper confirms at pause or chunk boundaries. Stop remains available in every mode. All modes use the same recognition and scoring rules. Preferences are remembered in the browser. Automatic saving is on by default and can be turned off; it saves completed readings and subsequent teacher corrections. Failed saves are shown with a retry action.
+
+Open **Add your own reading material** to paste notes or import TXT, Markdown, text-based PDF, DOCX, or EPUB, up to 10 MB. The file is processed locally. Review the extracted words, choose English or Filipino and a grade, then save an excerpt of 1–2,000 words. For books, choose a starting word and excerpt length. The preview is capped at 100,000 characters (and 200 PDF pages). Scanned PDFs require OCR first; encrypted documents must be unlocked. Original uploaded files are not stored.
+
+**Offline reading history** supports learner/passage search, more than 20 results through Load more, reopening word marks, and CSV export. **Back up library & history** downloads a consistent database snapshot. New records include engine, device, validation mode, passage text, and word decisions. Legacy CSV records retain their summary scores; their original per-word decisions were never stored.
+
+For a manual restore, stop Booklat, keep a copy of the current database, and replace `data/booklat.sqlite3` with the downloaded snapshot. Remove any stale `booklat.sqlite3-wal` and `booklat.sqlite3-shm` files only while the server is stopped. Restart Booklat. The SQLite file includes both imported passages and reading history.
+
+The expanded implementation brief and further suggestions are in [IMPLEMENTATION_BRIEF.md](IMPLEMENTATION_BRIEF.md).
 
 ## Windows 11
 
@@ -8,20 +20,20 @@ See [Windows setup and hardware comparison](WINDOWS.md). Use `setup-windows.cmd`
 
 ## Live streaming trial (Vosk)
 
-Booklat now offers **Vosk · live streaming trial** and **Whisper · original comparison** in the Setup screen. Vosk is an optional dependency with separate local English and Filipino models. Prepare it once while online, using the existing project environment:
+Booklat now offers **Vosk · continuous speech** and **Whisper · phrase recognition** in the Setup screen. Vosk is an optional dependency with separate local English and Filipino models. Prepare it once while online, using the existing project environment:
 
 ```bash
 ./scripts/setup_vosk.sh
 ./run.sh
 ```
 
-If a server is already running, stop it with Ctrl+C before `./run.sh`. Refresh the browser, select Vosk, choose a passage, and enable the debugger. Wait for **Vosk ready**, click Start, and begin at **Listening**. Vosk receives continuous 100 ms frames: it does not discard calibration audio or use the Whisper loudness gate. Dotted blue highlights are tentative and can change; normal marks become confirmed when Vosk finalizes a phrase or you stop. Teacher overrides remain locked. On connection failure, recovered results use confirmed marks plus teacher edits, not tentative recognition.
+If a server is already running, stop it with Ctrl+C before `./run.sh`. Refresh the browser, select Vosk, choose a passage, and enable the debugger. Wait for **Vosk ready**, click Start, and begin at **Listening**. Vosk receives continuous 100 ms frames: it does not discard calibration audio or use the Whisper loudness gate. Colored marks with dotted outlines are tentative and can change; the outlines disappear when Vosk finalizes a phrase or you stop. Teacher overrides remain locked. On connection failure, recovered results use confirmed marks plus teacher edits, not tentative recognition.
 
 Vosk's changing partial transcript is re-aligned from the last confirmed phrase. Repeated partial updates never add repetitions to the score. Final timestamps come from Vosk's word results; partial display timestamps may be estimated and are never used for scoring. There is no passage-only grammar that could force incorrect speech into expected words.
 
 The model files live under `models/` (Git-ignored). Setup downloads and verifies `vosk-model-small-en-us-0.15` and `vosk-model-tl-ph-generic-0.6` from the official Vosk model catalog. Runtime loads explicit local paths and cannot download models. English is Apache 2.0; the Filipino model is **CC-BY-NC-SA 4.0 (noncommercial)**. See https://alphacephei.com/vosk/models for model details and licenses.
 
-For a fair trial, read each passage cleanly, then with a deliberate skip and repeat. Compare the actual first-highlight delay, false marks, and the final score. The debugger's **Frame processing** value measures server queue plus decoding for an input frame; it does **not** measure word-end-to-highlight latency. A 100 ms frame does not guarantee a 100 ms recognized word. Streaming accuracy and sub-second perceived response require measurement with the real models and your microphone.
+For a fair trial, read each passage cleanly, then with a deliberate skip and repeat. Compare the actual first-highlight delay, false marks, and the final score. **Processing** measures server decoding time and **Queue** measures waiting before decoding. Neither measures word-end-to-highlight latency. A 100 ms frame does not guarantee recognition within 100 ms. Live previews use Vosk's text-only best path; word timing and final scoring use endpoint results. See the [Vosk partial-result implementation](https://github.com/alphacep/vosk-api/blob/master/src/recognizer.cc) for the distinction. Accuracy and visible latency still need measurement with actual recordings and your microphone.
 
 To replay the same manually recorded clip through both engines:
 
@@ -91,7 +103,7 @@ Scoring uses the last reached word as the attempted-word boundary. Substitutions
 
 Everything runs on this device. No microphone audio is stored or uploaded. Audio travels only between the browser and the loopback server, and stays in memory while processed. Transcribed text is not logged. Model setup is the only application step that downloads from the internet; dependency installation also requires internet initially. The page uses system fonts and no external assets.
 
-Saved names and scores are stored in `data/results.csv`, ignored by Git. The newest 20 readings appear on the setup screen, and **Download CSV** exports all saved rows. Re-saving the same session replaces its row atomically. Spreadsheet formula prefixes in text fields are neutralized. Keep the laptop and exported files private: the CSV contains learner names.
+Saved names, scores, word marks, and custom passages are stored in `data/booklat.sqlite3`, ignored by Git. Existing `data/results.csv` entries are imported once and the original CSV is retained. Re-saving the same session updates its database record transactionally. CSV exports neutralize spreadsheet formula prefixes. The database and exported files contain learner names. `BOOKLAT_DB_PATH` can select an alternate database; `BOOKLAT_RESULTS_PATH` selects the legacy CSV source and provides an isolated default database path for tests.
 
 ## Known limits
 
@@ -119,6 +131,43 @@ On Setup, select **Enable speech debugger** before starting. The panel appears b
 
 Expand a chunk to inspect every recognizer word with timestamps and confidence (including low-confidence words filtered out), followed by the aligner's expected word, pointer movement, and marks. Confidence is the recognizer's estimate, not learner accuracy. The panel separates queue wait from processing time; processing includes waiting for the shared model lock. A processing/audio ratio above 1 means that chunk took longer to process than its duration. Chunk collection time comes before these measurements.
 
-**Copy debug report** copies the latest 100 chunks, latest audio measurements, browser capture settings, and teacher-overridden word indices. It omits the learner-name field and device identifiers, but recognized speech may itself contain names. No audio is recorded, no diagnostic text is logged by the server, and no report is saved automatically. Refreshing or starting a new reading clears it. Debugging does not change recognition or scoring settings. Restart the server and refresh the browser after installing this update.
+**Copy debug report** copies the latest 100 chunks, latest audio measurements, browser capture settings, and teacher-overridden word indices. It omits the learner-name field and device identifiers, but recognized speech may itself contain names. The debugger itself does not record audio; the separate voice-recording option controls history audio. No diagnostic text is logged by the server, and no report is saved automatically. Refreshing or starting a new reading clears it. Debugging does not change recognition or scoring settings. Restart the server and refresh the browser after installing this update.
 
 Calibration now caps the speech threshold at `chunker.threshold_ceiling` (1500 RMS by default). During idle audio, a full calibration-sized window of quieter frames can lower it toward the configured floor. This prevents loud startup audio from permanently setting an unusably high gate. A startup warning appears if the cap was needed. The cap is a tuning default, not a speech/noise classifier: in persistent noise it may send more background audio to recognition. Remain quiet during startup and validate with a real microphone reading.
+
+
+## Reading and recovery controls
+
+- Choose a **1, 2, or 3 second finish delay** (default 2). The countdown starts after a confirmed ending. Recognized corrections or detected speech cancel the countdown; a new confirmed endpoint starts it again. **Keep reading** cancels automatic finish for that reading, and Stop finishes manually.
+- **Confirmed reading progress** counts words attempted, including inferred omissions. It does not count correct words alone. Optional active-line following scrolls only when the recognized word goes outside the visible reading area.
+- **Check microphone** continuously displays the input level and reports silence or excessive volume until you choose **Stop microphone check**. It does not record or send check audio, and remains an optional check. Thresholds are approximate input-level guidance, not recognition confidence.
+- **Review words** filters wrong, skipped, repeated, or unread words. Filtered entries show expected text and what the recognizer heard. Hovering an entry also shows that comparison. Teacher corrections remain editable.
+- A **single unfinished draft** is stored in this browser after confirmed phrases, teacher edits, and page unload. Refresh recovery offers continued reading from the next unread word, review, or discard. Provisional guesses are excluded. Continuation uses the same passage/session and offsets word positions and timing; the refresh break is excluded from duration. One new draft replaces the previous one. Browser storage is separate from the SQLite backup.
+- **Save entire text as book sections** splits extracted document text or pasted notes into 50–2,000-word sections (default 300). Sections save together in SQLite. Imported text is bounded by the extraction preview limit; only that extracted text is split. Editing an excerpt does not alter the imported full text. Section boundaries are word-count based and can fall inside a sentence. The next section becomes available after a complete reading. Each learner's section position is remembered in this browser; entering that learner's name restores it.
+
+These controls have not yet been exercised with a live microphone after this change.
+
+
+## Voice recordings and word playback
+
+**Save voice recording with reading history** is enabled by default and can be turned off before reading. Captured mono 16 kHz PCM samples are the same samples sent to the local recognizer, including startup silence. The WAV is saved alongside the result in SQLite; automatic saving also saves its recording. With automatic saving off, use **Save result** to retain both. If audio saving fails after the score is saved, the page reports that separately and provides Retry scoring to retry the save without duplicating the recording.
+
+Open a history row labelled **Open · voice** to play or seek the recording. Passage words highlight at their saved recognition start/end times, with expected text, recognized text, status, and passage time shown beside playback. Select a timestamped word and choose **Play from this word**. Skipped words do not have spoken audio; repeated-word counts are aggregated marks and do not provide a separate timestamp for every repeat. Teacher corrections change marks without changing the original audio.
+
+Recordings have a 50 MB limit per portion (about 27 minutes). Recognition continues if that limit is reached; the page reports that audio covers only the beginning. A resumed draft records a new portion with its own passage-time offset; earlier audio lost in a refresh cannot be reconstructed. Audio already saved for the same reading is retained as separate portions. Old readings and readings made with recording disabled show that no audio is available.
+
+Download individual WAV files or delete all voice portions from a reading while retaining its marks and scores. **Back up library & history** includes saved audio, so database backups are larger and contain learner voices. The microphone check is never recorded. Playback timing uses recognizer estimates and has not yet been measured against live speech after this change.
+
+
+## Phil-IRI component grading and exports
+
+The results show Phil-IRI 2018 component criteria using DepEd's PPST Resource Package Module 11: word recognition **97–100 / 90–96 / 89 and below**, and comprehension **80–100 / 59–79 / 58 and below**, for Independent / Instructional / Frustration respectively. Continuous decimal scores are classified before display rounding at word thresholds 97/90 and comprehension thresholds 80/59. WPM is a separate fluency measure.
+
+The rubric word score uses the full passage word count: `(words − counted miscues) / words × 100`, floored at zero. The existing app accuracy uses the attempted portion and the configured miscue types. Incomplete readings retain a provisional word score and do not receive a rubric word component level. Automatic counts cover the app's available marks; they do not identify every official miscue type. Teachers may enter a **reviewed total miscues** to replace that count. Teacher self-corrections and dialectal variation should be reviewed according to the administered manual.
+
+Teachers can enter comprehension correct answers and total administered questions. Empty fields remain **Not assessed**; speech is never used to infer comprehension. The app reports separate component levels and does not automatically assign an overall Phil-IRI placement. Custom passages and automated marks do not constitute an official administration.
+
+Saved records retain a grading snapshot. CSV exports add component percentages, levels, teacher counts, grading status, formulas' criteria thresholds, and source/version. Legacy records retain their original scores; unassessed components remain empty. **Download grading report**, available after saving, produces a standalone printable HTML report with scores, rubric, source, and word recognition timestamps. Open that report in a browser to print or save as PDF. Database backups retain the rubric snapshot along with readings and audio.
+
+Source: https://tec.deped.gov.ph/wp-content/uploads/2020/09/PPST.RP_Module-11.pdf
+Policy: https://www.deped.gov.ph/2018/03/26/do-14-s-2018-policy-guidelines-on-the-administration-of-the-revised-philippine-informal-reading-inventory/
