@@ -1612,6 +1612,14 @@ input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-ou
 @media(max-width:767px){.grading-panel .library-grid{grid-template-columns:1fr}.recording-selector{flex-wrap:wrap}.recording-panel .actions{justify-content:flex-start;flex-wrap:wrap}.recording-panel .actions button{white-space:normal}}
 
 #completion-message:empty,#philiri-status:empty,#breakdown:empty,#score-status:empty,#review-count:empty{display:none}
+/* Shared navigation keeps the current reading available between screens. */
+header#landing-top{min-height:72px;gap:var(--space-3)}
+.header-nav{display:flex;align-items:center;gap:var(--space-2)}
+.header-nav button{min-height:44px;padding:var(--space-2) var(--space-4);border:1px solid transparent;background:transparent;color:var(--ink);white-space:nowrap}
+.header-nav button:hover{background:var(--bg);border-color:var(--line)}
+.header-nav button[aria-current="page"]{color:var(--primary);border-bottom-color:var(--primary);background:var(--surface)}
+.header-nav button:disabled{opacity:.55;cursor:default}
+@media(max-width:767px){header#landing-top{padding:var(--space-3) var(--space-4);gap:var(--space-2)}.header-nav{gap:0}.header-nav button{padding:var(--space-2);font-size:.85rem}.home-link .wordmark{font-size:1.6rem}}
 </style>
 </head>
 <body>
@@ -1623,7 +1631,7 @@ input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-ou
   <path d="M5 12l6 6" />
   <path d="M5 12l6 -6" />
 </symbol><symbol id="icon-expand" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M10 7H7v3m7-3h3v3M7 14v3h3m7-3v3h-3"/></symbol><symbol id="icon-collapse" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M7 10h3V7m4 0v3h3M10 17v-3H7m10 0h-3v3"/></symbol></svg>
-<header id="landing-top"><a id="booklat-home" class="brand home-link" href="#landing-screen" aria-label="Booklat home"><span class="wordmark"><span class="turn">book</span><span class="lat">lat</span></span></a><button id="open-settings" class="icon-button" type="button" aria-controls="settings-screen" aria-label="Settings" title="Settings"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-settings"></use></svg></button></header>
+<header id="landing-top"><a id="booklat-home" class="brand home-link" href="#landing-screen" aria-label="Booklat home"><span class="wordmark"><span class="turn">book</span><span class="lat">lat</span></span></a><nav class="header-nav" aria-label="Main navigation"><button id="nav-home" type="button" aria-controls="landing-screen" aria-current="page">Home</button><button id="nav-reading" type="button" aria-controls="setup-screen">Reading</button><button id="open-settings" type="button" aria-controls="settings-screen" title="Settings">Settings</button></nav></header>
 <main>
 <section id="landing-screen" aria-labelledby="landing-heading">
 
@@ -1760,6 +1768,7 @@ function showScreen(name) {
   screen=name;for(const page of ['landing','setup','reading','results','settings'])$(page+'-screen').hidden=page!==name;
   $('back-to-top').hidden=name!=='landing';closeEditor(false);$('mic-check').disabled=name==='reading';$('open-settings').disabled=name==='reading'||starting;
   $('open-settings').title=name==='reading'?'Finish reading to open settings':'Settings';
+  for(const [id,active] of [['nav-home',name==='landing'],['nav-reading',['setup','reading','results'].includes(name)],['open-settings',name==='settings']]){const button=$(id);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');button.disabled=name==='reading'||starting;}
   if(name==='setup')requestAnimationFrame(fitHistoryViewport);
 }
 function goHome(){landingVisited=false;resetPlayback();showScreen('landing');playDemo();window.scrollTo({top:0,behavior:'auto'});$('open-app').focus();}
@@ -2354,6 +2363,8 @@ function enterApp(event) {
   $('learner').focus();
 }
 $('open-app').onclick = enterApp;
+$('nav-home').onclick=()=>{if(!starting&&screen!=='reading')goHome();};
+$('nav-reading').onclick=event=>{if(starting||screen==='reading')return;if(session){landingVisited=true;clearInterval(demoTimer);showScreen('results');window.scrollTo({top:0,behavior:'auto'});}else enterApp(event);};
 demoMotion.addEventListener('change', playDemo);
 playDemo();
 
@@ -2374,8 +2385,31 @@ $('recover-results').onclick=()=>{if(session.engine==='vosk'){session.provisiona
 $('editor').addEventListener('click',e=>{const button=e.target.closest('[data-status]');if(button)edit(button.dataset.status);});
 document.addEventListener('click',e=>{for(const menu of document.querySelectorAll('.history-downloads'))if(!menu.contains(e.target))menu.open=false;const word=e.target.closest('.w');if(word)openEditor(Number(word.dataset.idx));else if(!e.target.closest('#editor'))closeEditor();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const menus=[...document.querySelectorAll('.history-downloads[open]')];if(menus.length){e.preventDefault();for(const menu of menus){menu.open=false;menu.querySelector('summary').focus();}return;}if($('passage-dialog').open&&!$('editor').hidden)e.preventDefault();closeEditor(true,true);}if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('w')){e.preventDefault();openEditor(Number(e.target.dataset.idx));if(validationVisible(Number(e.target.dataset.idx)))$('editor').querySelector('button').focus();}else if(e.code==='Space'&&screen==='reading'&&!e.target.closest('button,input,select,textarea')){e.preventDefault();stopReading();}});
-window.addEventListener('beforeunload',()=>{micStopRequested=true;persistDraft();stream?.getTracks().forEach(t=>t.stop());socket?.close();});
-(async()=>{const prefs=preferences();$('engine-select').value='vosk';if(['live','auto_finish','after_pause'].includes(prefs.validation))$('validation-mode').value=prefs.validation;else if(prefs.validation==='after_stop')$('validation-mode').value='auto_finish';if(typeof prefs.autosave==='boolean')$('autosave').checked=prefs.autosave;if([1,2,3].includes(prefs.finishDelay))$('finish-delay').value=String(prefs.finishDelay);if(typeof prefs.followLine==='boolean')$('follow-line').checked=prefs.followLine;if(typeof prefs.recordVoice==='boolean')$('record-voice').checked=prefs.recordVoice;if(typeof prefs.historyColors==='boolean')$('history-colors').checked=prefs.historyColors;applyHistoryColors();importCount();pollHealth();showDraft();try{passages=await api('/api/passages');populatePassages();}catch(error){$('setup-error').textContent=error.message+' Refresh this page to try again.';$('setup-error').hidden=false;}await recent();})();
+function rememberPage(){
+  try{
+    const review=session&&screen!=='reading'?Object.fromEntries(Object.entries(session).filter(([key])=>!['audioBlob','audioFrames','diagnostics','locked','provisional'].includes(key))):null;
+    sessionStorage.setItem('booklat-page',JSON.stringify({screen,settingsReturn,learner:$('learner').value,passage:$('passage-select').value,review}));
+  }catch{ /* Storage may be unavailable or full; normal navigation still works. */ }
+}
+async function restorePage(){
+  let saved;try{saved=JSON.parse(sessionStorage.getItem('booklat-page')||'null');}catch{return;}
+  if(!saved||!['landing','setup','reading','results','settings'].includes(saved.screen))return;
+  $('learner').value=saved.learner||'';
+  if(passages.some(p=>p.id===saved.passage))populatePassages(saved.passage);
+  landingVisited=saved.screen!=='landing';if(landingVisited)clearInterval(demoTimer);
+  settingsReturn=['landing','setup','results'].includes(saved.settingsReturn)?saved.settingsReturn:'setup';
+  if(saved.review?.passage&&Array.isArray(saved.review.marks)){
+    session={...saved.review,locked:new Set(),provisional:new Set(),audioFrames:[],diagnostics:[],debug:false};
+    await resultsScreen(false);
+  }
+  const target=saved.screen==='reading'||saved.screen==='results'&&!session?'setup':saved.screen;
+  if(settingsReturn==='results'&&!session)settingsReturn='setup';
+  showScreen(target);startState();
+  if(saved.screen==='reading')toast('Reading paused by refresh. Use Continue reading to resume your saved draft.');
+}
+window.addEventListener('pagehide',rememberPage);
+window.addEventListener('beforeunload',()=>{rememberPage();micStopRequested=true;persistDraft();stream?.getTracks().forEach(t=>t.stop());socket?.close();});
+(async()=>{const prefs=preferences();$('engine-select').value='vosk';if(['live','auto_finish','after_pause'].includes(prefs.validation))$('validation-mode').value=prefs.validation;else if(prefs.validation==='after_stop')$('validation-mode').value='auto_finish';if(typeof prefs.autosave==='boolean')$('autosave').checked=prefs.autosave;if([1,2,3].includes(prefs.finishDelay))$('finish-delay').value=String(prefs.finishDelay);if(typeof prefs.followLine==='boolean')$('follow-line').checked=prefs.followLine;if(typeof prefs.recordVoice==='boolean')$('record-voice').checked=prefs.recordVoice;if(typeof prefs.historyColors==='boolean')$('history-colors').checked=prefs.historyColors;applyHistoryColors();importCount();pollHealth();showDraft();try{passages=await api('/api/passages');populatePassages();}catch(error){$('setup-error').textContent=error.message+' Refresh this page to try again.';$('setup-error').hidden=false;}await recent();await restorePage();})();
 </script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 RUBRIC = {
     'version': 'Phil-IRI 2018 component criteria / Booklat profile v1',
     'source_title': 'DepEd PPST Resource Package Module 11, Phil-IRI criteria',
-    'source_url': 'https://tec.deped.gov.ph/wp-content/uploads/2020/09/PPST.RP_Module-11.pdf',
+    'source_url': 'https://depedph-my.sharepoint.com/:b:/g/personal/lrms_manila_deped_gov_ph/EcCrs5zU1fZKqzNFxzbKgoUBBvvgAwjtsX9j4XKZpYtT5g?e=Lk2UtR',
     'criteria': [
         {'level': 'independent', 'word_reading': '97–100%', 'comprehension': '80–100%', 'description': 'Reads and understands material independently.'},
         {'level': 'instructional', 'word_reading': '90–96%', 'comprehension': '59–79%', 'description': 'Benefits from teacher guidance.'},
