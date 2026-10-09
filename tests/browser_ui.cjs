@@ -9,20 +9,22 @@ const script = html.split('<script>')[1].split('</script>')[0];
 
 function harness() {
   const nodes = new Map();
-  const element = () => ({textContent: '', hidden: false, disabled: false, children: [],
+  const element = () => ({textContent: '', hidden: false, disabled: false, children: [], dataset:{},
     append(...items) { this.children.push(...items); },
+    get firstElementChild(){return this.children[0];}, value:'', checked:true, classList:{contains:()=>false},
     replaceChildren(...items) { this.children = items; },
     focus() { context.focused = this; }});
   const $ = id => { if (!nodes.has(id)) nodes.set(id, element()); return nodes.get(id); };
   const word = element();
-  const context = vm.createContext({$, console, clearTimeout, setTimeout,
+  const context = vm.createContext({$, console, clearTimeout, setTimeout, URLSearchParams, requestAnimationFrame(){},fitHistoryViewport(){},historyOffset:0, historyRequest:0,historyLoading:false,historyHasMore:false,
+    preferences:()=>({}),applyHistoryColors(){},importCount(){},showDraft(){},renderGrading(){},setupPlayback(){},clearDraft(){},scheduleDraft(){},
     document: {createElement: element, querySelector: selector => {
       assert.equal(selector, '#results-passage .w[data-idx="0"]'); return word;
     }},
     session: {id: 'test', learner: 'Test fixture', passage: {id: 'test', tokens: ['word']},
       marks: [{status: 'correct', repeats: 0}], locked: new Set(), first_t: 0, last_t: 10},
     passages: [], revision: 0, scoreRequest: 0, scoreTimeout: null,
-    selected: 0, screen: 'results', paint() {}, toast() {}, api: async () => []});
+    selected: 0, screen: 'results', projectorMode:false,homeAfterFinish:false, paint() {}, toast() {}, api: async () => []});
   for (const [start, end] of [
     ['function badge(', 'function startState('],
     ['async function recent(', 'function drawPassage('],
@@ -67,7 +69,7 @@ test('startup still loads recent readings when passage loading fails', async () 
   c.pollHealth = () => {};
   c.api = async () => { throw Error('Passages unavailable'); };
   c.recent = async () => { calls++; };
-  await vm.runInContext(script.slice(script.lastIndexOf('(async()=>{pollHealth();')), c);
+  await vm.runInContext(script.slice(script.lastIndexOf('(async()=>{const prefs=')), c);
   assert.equal(calls, 1);
   assert.equal($('setup-error').hidden, false);
 });
@@ -141,7 +143,7 @@ test('save failure permits retry and successful save keeps the Saved label', asy
   assert.equal($('save').disabled, false);
   c.api = async () => score;
   await c.updateScore(true);
-  assert.equal($('save').textContent, 'Saved ✓');
+  assert.equal($('save').textContent, 'Saved offline ✓');
   assert.equal(c.session.saved, true);
   assert.equal($('save').disabled, false);
 });

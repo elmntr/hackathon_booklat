@@ -171,3 +171,30 @@ Saved records retain a grading snapshot. CSV exports add component percentages, 
 
 Source: https://tec.deped.gov.ph/wp-content/uploads/2020/09/PPST.RP_Module-11.pdf
 Policy: https://www.deped.gov.ph/2018/03/26/do-14-s-2018-policy-guidelines-on-the-administration-of-the-revised-philippine-informal-reading-inventory/
+
+
+## Integration verification
+
+The landing and classroom screens use one set of IDs and event bindings. The feature-complete behavior and branded screens are integrated; conflicting fragments from the UI merge were removed. History still loads if passage loading fails. Pending scores clear previous results; late errors from older requests do not replace current results. Escape closes the editor and returns focus to the selected word.
+
+`python -m pytest -q` checks API contracts, unique frontend hooks and screen ownership, audio resampling, saved WAV range playback and deletion, recording-inclusive SQLite backup, Phil-IRI scoring/report exports, book sections, resumed WebSockets and the browser state unit checks. POSIX setup-script orchestration checks run only on POSIX hosts; Windows uses the CMD setup scripts.
+
+For the optional full browser integration check, start a separate server using `BOOKLAT_SKIP_MODEL=1`, `BOOKLAT_DB_PATH` and `BOOKLAT_RESULTS_PATH` pointing at disposable test storage, on port 8765. With Playwright and Edge available, run `node tests/browser_integration.cjs`; `BOOKLAT_TEST_URL` can change the test server URL. This check creates synthetic readings and deletes their recordings, so use isolated test storage. It uses a synthetic microphone and recognition events with real HTTP routes; actual microphone recognition quality requires a separate speech trial. Layouts are checked at 1280×720, 1366×768 and 360px wide, and page requests must stay local.
+
+
+## Classroom screen controls
+
+- **Reading passage** has a title/language search and four visible options. Scroll for more; arrow keys move through options and Enter selects. The chosen passage remains in the preview even if a search hides its title.
+- The **Settings** icon in the header opens a separate page containing validation timing, finish delay, active-line following, microphone check, automatic saving, recording and debugging. Mode, delay, saving and recording choices are captured for the next reading. The classroom interface always uses Vosk. Previously saved Whisper readings remain available in history.
+- **Large view** is available for preview, live reading and result review. It moves the existing passage into a modal overlay, so word validation and edits stay synchronized. Expand and collapse use icon buttons. Text sizes range from 32 to 72 px. Stop reading is available inside the live overlay; Close returns to the same passage. Escape closes the word editor first and then the overlay. The overlay closes when the reading finishes.
+- **Offline history** shows four rows and its column header at a time, with vertical scrolling for other loaded readings and horizontal scrolling on smaller screens. Search remains available. Older readings load as you scroll to the bottom. Category colors are optional. Save a copy contains Download scores and Back up this computer.
+
+
+### Favorites, filters and projector mode
+
+Open the three-dot menu beside the selected title and choose **Add favorite** to bookmark a passage. Stars and **Favorites only** are available alongside grade, language and title filters. Favorites are saved in this browser, separately from database backups. Filtering preserves the selected preview; **Reset filters** shows the full library. Newly imported passages clear filters so their titles are visible.
+
+During reading, **Projector mode** shows the current recognized line in the large view. It follows speech progress, retains validation timing and teacher edits, and displays line/word progress. Choose **Show full passage** to see all words, change **Text size** to suit the room, or use **Stop reading**. Closing the overlay returns to the regular reading screen; completed readings open the full results.
+
+
+The Booklat wordmark returns to the landing page. During a reading it finishes capture and opens the landing after scoring succeeds. A scoring failure keeps the results available for review. Settings can be opened before or after a reading; finish the active reading before changing settings.

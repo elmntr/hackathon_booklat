@@ -161,6 +161,15 @@ class ScoreMark(BaseModel):
     self_corrected: bool = False
 
 
+    @model_validator(mode='after')
+    def validate_word_clock(self):
+        if (self.t0 is None) != (self.t1 is None):
+            raise ValueError('Word start and end timestamps must be supplied together.')
+        if self.t0 is not None and self.t1 < self.t0:
+            raise ValueError('Word end time must not precede start time.')
+        return self
+
+
 class ScoreRequest(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False)
     session_id: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
