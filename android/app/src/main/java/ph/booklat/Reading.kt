@@ -73,6 +73,11 @@ class Reading(val passage:Passage,var learner:String,val id:String=UUID.randomUU
     val score get()=score(marks,first,last)
     val wordPercent get()=if(score.attempted>0) max(0.0,(score.total-(reviewed?:score.miscues))*100.0/score.total) else null
     val comprehension get()=questions?.let { (answers?:0)*100.0/it }
+    val readingLevel get():String? {
+        val word = if(score.partial) null else category(wordPercent)
+        val understanding = category(comprehension,80.0,59.0)
+        return if(word==null || understanding==null) null else if(word=="frustration" || understanding=="frustration") "frustration" else understanding
+    }
     fun json()=JSONObject().put("id",id).put("timestamp",timestamp).put("passage",passage.json()).put("learner",learner).put("marks",JSONArray(marks.map { it.json() })).put("first",first).put("last",last).put("locked",JSONArray(locked.toList())).put("reviewed",reviewed).put("answers",answers).put("questions",questions).put("mode",mode).put("teacher_non_reader",teacherNonReader)
     companion object { fun from(j:JSONObject)=Reading(Passage.from(j.getJSONObject("passage")),j.getString("learner"),j.getString("id"),j.getString("timestamp")).apply {
         marks=j.getJSONArray("marks").let { a-> List(a.length()){Mark.from(a.getJSONObject(it))} }; first=if(j.has("first")) j.getDouble("first") else null; last=if(j.has("last")) j.getDouble("last") else null
