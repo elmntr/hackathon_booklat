@@ -816,6 +816,17 @@ to{
 .landing-companion{display:flex;justify-content:center;flex:none}
 .landing-companion .mascot{width:100px;height:118px}
 .demo-passage{font:clamp(1.8rem,3vw,2.5rem)/1.85 var(--reader);min-height:150px}
+.landing-workflow{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:var(--space-12);padding:var(--space-10) 0 var(--space-12);border-top:2px solid var(--ink)}
+.landing-workflow h2{font-size:clamp(1.5rem,2.6vw,2rem);line-height:1.2;margin:0 0 var(--space-6)}
+.reading-steps{list-style:none;padding:0;margin:0;counter-reset:reading-step}
+.reading-steps li{counter-increment:reading-step;display:flex;align-items:baseline;gap:var(--space-5);padding:var(--space-3) 0;font-size:1.1rem}
+.reading-steps li::before{content:"0" counter(reading-step);color:var(--primary);font-size:.8rem;font-variant-numeric:tabular-nums;font-weight:700}
+.landing-report{background:var(--surface);border-left:1px solid var(--line);padding:var(--space-6) var(--space-8)}
+.landing-report h2{font-size:1.25rem;margin-bottom:var(--space-4)}
+.report-contents{list-style:none;padding:0;margin:0}
+.report-contents li{padding:var(--space-4) 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:var(--space-4)}
+.report-contents li span:last-child{color:var(--muted);text-align:right;font-size:.85rem}
+@media(max-width:767px){.landing-workflow{grid-template-columns:1fr;gap:var(--space-6);padding:var(--space-8) 0}.landing-report{padding:var(--space-5);border-left:4px solid var(--rule)}.landing-workflow h2{margin-bottom:var(--space-4)}.report-contents li{flex-wrap:wrap}.report-contents li span:last-child{text-align:left}}
 .landing-details{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -887,6 +898,8 @@ body:has(#landing-screen[hidden]) .skip-link{display:none}
 .about-booklat summary::before{content:"+";font-size:1.2rem}
 .about-booklat[open] summary::before{content:"-"}
 .about-booklat .landing-details{padding:var(--space-4) 0}
+.about-solution{grid-column:1/-1;border-top:1px solid var(--line);padding-top:var(--space-5)}
+.about-solution p{max-width:85ch}
 .about-booklat>p{font-size:.75rem;color:var(--muted);margin:0 0 var(--space-4)}
 #start-hint{display:none}
 body:has(#model-chip.missing) #start-hint{display:block}
@@ -1635,10 +1648,16 @@ input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-ou
 </section>
 </div>
 
+<section class="landing-workflow" aria-labelledby="workflow-heading">
+<div><h2 id="workflow-heading">From passage<br>to report.</h2><ol class="reading-steps"><li>Choose a passage</li><li>Listen to the reading</li><li>Review the marks</li></ol></div>
+<div class="landing-report"><h2>After the reading</h2><ul class="report-contents"><li><span>Reading scores</span><span>Pace · Accuracy · Time</span></li><li><span>Word-by-word review</span><span>Editable marks</span></li><li><span>Voice playback</span><span>Optional recording</span></li><li><span>Saved readings</span><span>History · CSV export</span></li></ul></div>
+</section>
+
 <details class="about-booklat"><summary>About Booklat</summary><div class="landing-details">
-<section><h2>From passage to report</h2><p>Pick a passage. The child reads aloud. Tap words to correct suggested marks. Save the reading offline and export the scores as CSV.</p><p class="report-facts">Time, words per minute, accuracy and Phil-IRI component criteria.</p></section>
-<section class="landing-privacy"><h2>On your laptop</h2><p>After setup, Booklat works without internet. Its local server listens only on 127.0.0.1. Voice recording is optional and saved in the local database when enabled.</p></section>
-</div><p>Voice recordings stay on this computer. Microphone checks are not recorded.</p></details>
+<section><h2>The problem</h2><p>Reading comprehension remains a challenge in the Philippines. In PISA 2025, only 31% of Filipino 15-year-olds reached minimum reading proficiency.</p><p>During an oral-reading assessment, a teacher has to listen, track mistakes, time the reading and record the results at once.</p><p><a href="https://www.oecd.org/en/publications/pisa-2025-results-volume-i-country-notes_2d4ff9ea-en/philippines_3699b9d5-en.html" target="_blank" rel="noopener noreferrer">Read the OECD PISA 2025 report <span aria-hidden="true">↗</span></a></p></section>
+<section><h2>Why we made Booklat</h2><p>We wanted to give Filipino public-school teachers less to manage during each reading, with tools they can use without a steady internet connection.</p></section>
+<section class="about-solution"><h2>How we built the solution</h2><p>We combined offline speech recognition with word-by-word passage matching to suggest reading marks and calculate scores. Teachers review and correct the marks, then save the reading or export the results.</p></section>
+</div></details>
 </section>
 <section id="setup-screen" hidden>
 <div class="intro"><div><h1>Let’s hear you read.</h1></div><div class="welcome"><svg class="mascot" data-pose="welcome" viewBox="0 0 136 160" aria-hidden="true"><path class="ink limbs wave-arm" d="M40 82 24 69 20 52"/><path class="ink limbs" d="M89 83 106 68 M53 124 48 142 36 142 M77 124 85 142 97 142"/><path class="paper" d="M43 26 80 22 94 44 88 128 65 113 43 131Z"/><path class="fold listening-fold" d="M80 22 78 45 94 44Z"/><circle class="eye" cx="57" cy="68" r="3"/><circle class="eye" cx="76" cy="68" r="3"/><path class="ink" d="M59 81q8 9 16 0"/></svg><p>Hi, I’m Tupi.</p></div></div>
