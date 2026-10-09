@@ -167,6 +167,8 @@ The rubric word score uses the full passage word count: `(words − counted misc
 
 Teachers can enter comprehension correct answers and total administered questions. Empty fields remain **Not assessed**; speech is never used to infer comprehension. The app reports separate component levels and does not automatically assign an overall Phil-IRI placement. Custom passages and automated marks do not constitute an official administration.
 
+In Results, a teacher can confirm **Non-Reader** and apply the review. This status is saved separately from the automated word-reading category: a 0% speech match still falls in the Frustration score band and does not by itself label a learner Non-Reader. History shows a confirmed status as “Non-Reader (teacher)”; CSV, reports, and backups retain both the score and teacher decision. Reopen a reading to clear the checkbox if needed.
+
 Saved records retain a grading snapshot. CSV exports add component percentages, levels, teacher counts, grading status, formulas' criteria thresholds, and source/version. Legacy records retain their original scores; unassessed components remain empty. **Download grading report**, available after saving, produces a standalone printable HTML report with scores, rubric, source, and word recognition timestamps. Open that report in a browser to print or save as PDF. Database backups retain the rubric snapshot along with readings and audio.
 
 Source: [DepEd PPST Resource Package Module 11 — DepEd Manila copy](https://depedph-my.sharepoint.com/:b:/g/personal/lrms_manila_deped_gov_ph/EcCrs5zU1fZKqzNFxzbKgoUBBvvgAwjtsX9j4XKZpYtT5g?e=Lk2UtR), printed page 20.

@@ -15,7 +15,7 @@ This tracks the port against current `web/index.html`, `web/BRAND.md` and the ba
 | Progress, timer, Stop, line following, focused line | Native reading screen and measured line layout | APK builds; device view pending |
 | Teacher word corrections | Locked correct/wrong/skipped/not-read/repeat marks | JVM mark tests pass; device pending |
 | Time, WPM, accuracy, category, Phil-IRI components | Ported formulas; no overall placement | JVM score/grading tests pass |
-| Reviewed miscues and comprehension | Validated teacher fields | JVM grading test; device pending |
+| Reviewed miscues, comprehension and Non-Reader status | Validated teacher fields and a separate teacher-confirmed status | JVM persistence test; device pending |
 | Optional recording, playback, word playback, WAV/delete | Private WAV portions, MediaPlayer, FileProvider | APK builds; device audio pending |
 | History, search, category colors, reopen, CSV, report, backup | SQLite and share sheet exports | APK builds; device I/O pending |
 | Settings, microphone check, autosave, diagnostics, draft recovery | Preferences and confirmed-mark draft | APK builds; device pending |
