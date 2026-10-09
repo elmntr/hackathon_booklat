@@ -7,22 +7,18 @@
 ## PART A: For you (the human)
 
 ### A1. How to launch the build (Codex CLI)
-**One-time setup on your Arch laptop (needs internet).** Installs Codex and the system packages. The npm prefix line avoids `sudo npm`, which the Codex docs warn against.
+**One-time setup on Linux Mint (needs internet).** If you only want to run the existing app, follow README.md instead. These commands prepare a new build and assume the Codex CLI is already installed.
 ```
-sudo pacman -S --needed nodejs npm python python-pip alsa-utils git
-npm config set prefix ~/.local
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-npm install -g @openai/codex
+sudo apt update
+sudo apt install python3 python3-venv python3-pip nodejs alsa-utils git curl xdg-utils
 ```
 
 **Create the project, install the Python dependencies now, and start a git repo.** Codex runs in a sandbox with no network by default, so it cannot install packages later. It also warns when the folder is not a git repo.
 ```
 mkdir -p ~/booklat && cd ~/booklat
 git init
-python -m venv .venv
-source .venv/bin/activate
-pip install fastapi "uvicorn[standard]" faster-whisper rapidfuzz pyyaml numpy pytest httpx
+python3 -m venv .venv
+.venv/bin/python -m pip install fastapi "uvicorn[standard]" faster-whisper rapidfuzz pyyaml numpy pytest httpx websockets
 ```
 
 **Copy this spec into the project** (assuming you saved it in `~/Downloads`):

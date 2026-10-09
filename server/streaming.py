@@ -1,7 +1,7 @@
 """Offline Vosk trial: continuous audio and revisable passage previews."""
 import asyncio
 from contextlib import suppress
-from copy import deepcopy
+from copy import copy
 from dataclasses import asdict
 import json
 from pathlib import Path
@@ -14,6 +14,13 @@ from server.aligner import Aligner, HeardWord
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_NAMES = {'en': 'vosk-model-small-en-us-0.15', 'tl': 'vosk-model-tl-ph-generic-0.6'}
+
+
+def recognize_frame(recognizer, data: bytes) -> tuple[bool, dict]:
+    """Advance Vosk and fetch its matching hypothesis in one worker dispatch."""
+    endpoint = recognizer.AcceptWaveform(data)
+    raw = recognizer.Result() if endpoint else recognizer.PartialResult()
+    return bool(endpoint), json.loads(raw)
 
 
 class VoskModels:
@@ -49,16 +56,21 @@ class VoskModels:
         from vosk import KaldiRecognizer
         recognizer = KaldiRecognizer(self.models[language], sample_rate)
         recognizer.SetWords(True)
-        recognizer.SetPartialWords(True)
+        # The text-only best path is available before Vosk's partial word lattice.
+        # Real word timestamps still come from SetWords(True) at phrase endpoints.
+        recognizer.SetPartialWords(False)
         return recognizer
 
 
 class StreamingAlignment:
     """Commit only endpoint results; rebuild each partial from that baseline."""
-    def __init__(self, passage: str, cfg: dict):
+    def __init__(self, passage: str, cfg: dict, debug: bool = False):
         self.committed = Aligner(passage, cfg)
         self.last_signature = None
         self.events = 0
+        self.last_marks = self.committed.snapshot()
+        self.last_provisional: set[int] = set()
+        self.debug = debug
 
     def update(self, result: dict, final: bool, audio_end: float) -> dict | None:
         text = result.get('text' if final else 'partial', '')
@@ -76,22 +88,30 @@ class StreamingAlignment:
             raw = [dict(word=word, start=start+i*step, end=start+(i+1)*step) for i, word in enumerate(tokens)]
         if final and text and not raw:
             raise ValueError('Vosk returned final text without word timestamps.')
-        before = self.committed.snapshot()
-        aligned = self.committed if final else deepcopy(self.committed)
+        baseline = self.committed.marks
+        aligned = self.committed if final else copy(self.committed)
+        if not final:
+            aligned.marks = self.committed.snapshot()
         decisions = []
         for item in raw:
             word = HeardWord(item['word'], float(item['start']), float(item['end']))
             pointer = aligned.p
             changed = aligned.feed([word])
-            decisions.append(dict(heard=word.text, pointer_before=pointer, pointer_after=aligned.p,
-                                  expected=aligned.tokens[pointer] if pointer < len(aligned.tokens) else None,
-                                  marks=[dict(asdict(aligned.marks[i]), expected=aligned.tokens[i]) for i in sorted(changed)]))
-        provisional = [] if final else [i for i, (a, b) in enumerate(zip(before, aligned.marks)) if a != b]
+            if self.debug:
+                decisions.append(dict(heard=word.text, pointer_before=pointer, pointer_after=aligned.p,
+                                      expected=aligned.tokens[pointer] if pointer < len(aligned.tokens) else None,
+                                      marks=[dict(asdict(aligned.marks[i]), expected=aligned.tokens[i]) for i in sorted(changed)]))
+        provisional = set() if final else {i for i, (a, b) in enumerate(zip(baseline, aligned.marks)) if a != b}
+        changed = {i for i, (a, b) in enumerate(zip(self.last_marks, aligned.marks)) if a != b}
+        changed.update(self.last_provisional.symmetric_difference(provisional))
+        changed_marks = [asdict(aligned.marks[i]) for i in sorted(changed)]
+        self.last_marks = aligned.snapshot()
+        self.last_provisional = provisional
         self.events += 1
         return dict(type='update', marks=[asdict(m) for m in aligned.marks], pointer=aligned.p,
-                    provisional=provisional, final=final, transcript=text,
+                    provisional=sorted(provisional), changed_marks=changed_marks, final=final, transcript=text,
                     words=[dict(text=w['word'], t0=float(w['start']), t1=float(w['end']),
-                                probability=float(w['conf']) if 'conf' in w else None, accepted=True) for w in raw],
+                                probability=float(w['conf']) if 'conf' in w else None, accepted=True) for w in raw] if self.debug else [],
                     decisions=decisions)
 
 
@@ -102,7 +122,7 @@ async def read_stream(websocket: WebSocket, passage: dict, cfg: dict, models: Vo
         await websocket.close()
         return
     queue: asyncio.Queue = asyncio.Queue(maxsize=100)
-    alignment = StreamingAlignment(passage['text'], cfg)
+    alignment = StreamingAlignment(passage['text'], cfg, debug)
     sample_rate = cfg['chunker']['sample_rate']
     received_samples = 0
     processed_samples = 0
@@ -119,15 +139,19 @@ async def read_stream(websocket: WebSocket, passage: dict, cfg: dict, models: Vo
             if final:
                 result = json.loads(await asyncio.to_thread(recognizer.FinalResult))
             else:
-                endpoint = await asyncio.to_thread(recognizer.AcceptWaveform, data)
-                result = json.loads(await asyncio.to_thread(recognizer.Result if endpoint else recognizer.PartialResult))
+                endpoint, result = await asyncio.to_thread(recognize_frame, recognizer, data)
                 processed_samples += len(data)//2
-                final = bool(endpoint)
+                final = endpoint
             finished = time.monotonic()
             event = alignment.update(result, final, processed_samples/sample_rate)
             if event is not None:
                 words, decisions = event.pop('words'), event.pop('decisions')
                 event['latency_ms'] = round((finished-queued)*1000)
+                event['queue_ms'] = round((started-queued)*1000)
+                event['processing_ms'] = round((finished-started)*1000)
+                if not final:
+                    # The browser already has the previous frame's marks.
+                    event['marks'] = event['changed_marks']
                 if debug:
                     duration = len(data)/2/sample_rate if data else 0
                     event['debug'] = dict(engine='vosk', chunk=alignment.events,

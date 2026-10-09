@@ -1,0 +1,11 @@
+<resources>
+    <style name="BooklatTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">@color/booklat_vermilion</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/booklat_mist</item>
+        <item name="android:navigationBarColor">@color/booklat_mist</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowBackground">@color/booklat_mist</item>
+    </style>
+</resources>
