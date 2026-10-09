@@ -15,7 +15,7 @@ Tupi welcomes, listens, cheers, offers a hand, stays kindly beside a difficult r
 The landing introduces oral-reading assessment with the same folded bookmark, vermilion ink and system type as the app.
 It names the reading task, shows real word marks, and states the speech recognizer's validation limit for children's voices.
 Copy describes what the teacher does on their laptop. No slogans, exclamation marks or decorative status labels.
-Controls use 12px corners, surfaces use 20px, temporary messages use 16px and word marks use 4px. Table cells stay continuous inside their rounded container. Borders and tone carry hierarchy; ordinary surfaces have no drop shadow.
+Surfaces have square edges, controls use 4px corners, temporary messages use 8px, and word marks use 2px. Table cells stay continuous inside their rounded container. Borders and tone carry hierarchy; ordinary surfaces have no drop shadow.
 All layout spacing comes from the shared 4px-based CSS scale. The existing ruled passage preview represents the teacher's reading notebook.
 The demo reveals the app's actual word states in sequence. Reduced motion shows the final marks without a loop.
 Entry is remembered in a JavaScript variable only. Reloading brings the landing back.
@@ -47,3 +47,16 @@ Booklat links back to the landing page from the shared header. The header contai
 History offers optional category colors for actual reading levels. Save a copy groups score downloads and a recording-inclusive backup with plain explanations. Older readings load when the teacher scrolls to the end of the four-row history area.
 
 Taste-skill design read: preserve the Booklat classroom identity with low motion and compact controls. DESIGN_VARIANCE 4, MOTION_INTENSITY 2, VISUAL_DENSITY 4. Keep the local HTML and CSS architecture. Tupi remains the original bookmark illustration. No additional decorative images are needed for these controls.
+
+## Restored classroom composition
+The earlier mist-and-chalk classroom identity is restored. Vermilion anchors the setup controls; charcoal anchors the passage and report. The landing is a slightly turned reading sheet with a hard offset edge. Results use an asymmetric report: reading category and Tupi on the left, time and pace in the middle, accuracy on the right. Settings use a ruled sheet, not a collection of rounded cards. New passage filters, favorites, imports, history, recordings, grading and projector controls keep their existing behavior. No new assets or dependencies. DESIGN_VARIANCE 5, MOTION_INTENSITY 2, VISUAL_DENSITY 3.
+
+Helper paragraphs are removed from the main screens. Passage search and its optional filter menu share one row under Passages. The expand control sits beside the selected title with a solid vermilion background. Live statuses, empty states and errors remain.
+
+Passages use a searchable combobox with up to four visible rows and scrolling. Optional grade, language and favorite filters live inside the dropdown; the passage count is kept hidden. Arrow keys navigate, Enter selects, Escape closes, and outside focus dismisses the list.
+
+Passage filters and favorites are removed. Search alone chooses a passage. The title has one expand control at its right edge, replacing the three-dot menu. Full passage view uses the same paper binding and ruled lines, with rule spacing following the selected text size.
+
+Full passage text size accepts any positive number of pixels, with no upper cap. Import controls use one document action, a filename, a compact metadata column and a larger passage editor. Save actions sit together below the editor; the native file input remains hidden behind a keyboard-accessible button.
+
+Book-section creation is removed from the import section. Text size uses the original preset dropdown plus Custom, which reveals a plain decimal text field with no spinner. Remaining numeric form controls also omit spinner arrows.
