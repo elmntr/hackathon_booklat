@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+faster-whisper
+rapidfuzz
+pyyaml
+numpy
+pytest
+httpx
+websockets

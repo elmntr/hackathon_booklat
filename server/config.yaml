@@ -1,0 +1,29 @@
+asr:
+  model: small
+  compute_type: int8
+  beam_size: 1
+  min_word_probability: 0.1
+  ignore_words: [uh, um, ah, hmm, eh, oh, huh]
+chunker:
+  sample_rate: 16000
+  frame_ms: 250
+  calibration_frames: 4        # first 4 frames (1 s) set the noise floor
+  threshold_floor: 250         # minimum speech threshold, int16 RMS
+  threshold_ceiling: 1500      # prevent loud startup audio from blocking the entire reading
+  threshold_multiplier: 2.5    # threshold = max(floor, multiplier * median noise RMS)
+  pause_frames: 2              # 2 silent frames (0.5 s) end a chunk
+  min_chunk_frames: 3
+  max_chunk_frames: 16         # 4 s hard cap
+  lead_in_frames: 1            # keep 1 frame before speech starts
+  min_speech_frames: 1
+aligner:
+  similarity_threshold: 80     # rapidfuzz ratio, 0 to 100
+  exact_match_max_len: 3       # words this short must match exactly
+  lookahead: 3
+  lookback: 3
+scoring:
+  counted_miscues: [substitution, omission, repetition]
+  min_time_s: 1.0              # below this, WPM is not computed
+  levels:                      # word-reading accuracy %, Phil-IRI
+    independent: 97.0
+    instructional: 90.0        # below this is frustration
