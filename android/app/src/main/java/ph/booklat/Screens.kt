@@ -94,7 +94,7 @@ import java.util.UUID
     Text("Word score: ${r.wordPercent?.let { rounded(it,2) }?:"n/a"}%\nWord component: ${if(r.score.partial) "Incomplete reading" else category(r.wordPercent)?:"n/a"}\nComprehension: ${r.comprehension?.let { rounded(it,2) }?:"n/a"}%\nComprehension component: ${category(r.comprehension,80.0,59.0)?:"n/a"}",lineHeight=28.sp)
     Text(if(r.reviewed==null) "Automatic miscue estimate. Teacher review required." else "Teacher-reviewed miscue total.")
     if(r.teacherNonReader) Text("Non-Reader status confirmed by the teacher. The word score remains separate.")
-    Text("Component profile only. No overall Phil-IRI placement. Comprehension is entered by a teacher.")
+    Text("Reading level: ${r.readingLevel?:"Not assessed"}. Uses the supplied adapted Phil-IRI rubric. Comprehension is entered by a teacher.")
 }
 @Composable fun ImportScreen(vm:BooklatModel) {
     val context=LocalContext.current

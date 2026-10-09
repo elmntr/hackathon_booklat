@@ -239,6 +239,7 @@ def grading_report(session_id: str):
               ('Counted miscues', grading.get('philiri_miscues')), ('Automatic miscue types', grading.get('counted_miscue_types')), ('Teacher-reviewed miscues', grading.get('reviewed_miscues')),
               ('Comprehension correct', grading.get('comprehension_correct')), ('Questions administered', grading.get('comprehension_total')),
               ('Comprehension (%)', grading.get('comprehension_pct')), ('Comprehension level', grading.get('comprehension_level')),
+              ('Combined reading level', grading.get('overall_philiri_level')),
               ('Grading status', grading.get('grading_status', 'Legacy record; components not assessed')),
               ('App accuracy (%)', summary.get('accuracy_pct')), ('App word-reading category', summary.get('level')),
               ('Teacher-confirmed Non-Reader', 'Yes' if summary.get('teacher_non_reader') else 'No'),

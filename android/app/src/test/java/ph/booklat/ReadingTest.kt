@@ -3,6 +3,15 @@ import org.junit.Test
 import org.junit.Assert.*
 class ReadingTest {
     private fun align(text:String):Aligner=Aligner("Mina has a small garden".split(' ')).apply { feed(text.split(' ').mapIndexed { i,w->Heard(w,i.toDouble(),i+.5) }) }
+    @Test fun suppliedRubricCombinations() {
+        for(miscues in listOf(0,10,11)) for(answers in listOf(80,59,58)) {
+            val r=Reading(Passage("rubric","Rubric","en",3,List(100){"word"}.joinToString(" ")),"Learner")
+            r.marks=List(100){Mark("correct")}; r.reviewed=miscues; r.answers=answers; r.questions=100
+            assertEquals(if(miscues==11 || answers==58) "frustration" else if(answers==80) "independent" else "instructional",r.readingLevel)
+            r.marks=List(100){Mark()}; assertNull(r.readingLevel)
+            r.marks=List(100){Mark("correct")}; r.questions=null; assertNull(r.readingLevel)
+        }
+    }
     @Test fun alignmentParity() {
         listOf("Mina has a small garden" to listOf("correct","correct","correct","correct","correct"),"Mina a small garden" to listOf("correct","omission","correct","correct","correct"),"Mina had a small garden" to listOf("correct","substitution","correct","correct","correct"),"Mina has" to listOf("correct","correct","not_reached","not_reached","not_reached")).forEach { (input,expected)->assertEquals(expected,align(input).marks.map { it.status }) }
     }
