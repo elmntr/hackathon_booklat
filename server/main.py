@@ -32,7 +32,7 @@ from server.imports import MAX_UPLOAD, clean_text, extract
 
 ROOT = Path(__file__).resolve().parents[1]
 COLUMNS = ('session_id,timestamp,learner,passage_id,language,grade,words_attempted,words_total,'
-           'reading_time_s,wpm,accuracy_pct,level,substitutions,omissions,repetitions,teacher_edited,philiri_word_score_pct,philiri_word_level,philiri_miscues,reviewed_miscues,comprehension_correct,comprehension_total,comprehension_pct,comprehension_level,grading_status,grading_note,rubric_version,word_independent_criteria,word_instructional_criteria,word_frustration_criteria,comprehension_independent_criteria,comprehension_instructional_criteria,comprehension_frustration_criteria,rubric_source,word_score_formula,comprehension_formula,counted_miscue_types,overall_philiri_level').split(',')
+           'reading_time_s,wpm,accuracy_pct,level,teacher_non_reader,substitutions,omissions,repetitions,teacher_edited,philiri_word_score_pct,philiri_word_level,philiri_miscues,reviewed_miscues,comprehension_correct,comprehension_total,comprehension_pct,comprehension_level,grading_status,grading_note,rubric_version,word_independent_criteria,word_instructional_criteria,word_frustration_criteria,comprehension_independent_criteria,comprehension_instructional_criteria,comprehension_frustration_criteria,rubric_source,word_score_formula,comprehension_formula,counted_miscue_types,overall_philiri_level').split(',')
 
 
 @asynccontextmanager
@@ -181,6 +181,7 @@ class ScoreRequest(BaseModel):
     comprehension_correct: Annotated[int, Field(strict=True, ge=0, le=1000)] | None = None
     comprehension_total: Annotated[int, Field(strict=True, ge=1, le=1000)] | None = None
     reviewed_miscues: Annotated[int, Field(strict=True, ge=0, le=100000)] | None = None
+    teacher_non_reader: Annotated[bool, Field(strict=True)] = False
     teacher_edited: bool = False
     save: bool = False
     engine: Literal['vosk', 'whisper'] = 'whisper'
@@ -240,6 +241,7 @@ def grading_report(session_id: str):
               ('Comprehension (%)', grading.get('comprehension_pct')), ('Comprehension level', grading.get('comprehension_level')),
               ('Grading status', grading.get('grading_status', 'Legacy record; components not assessed')),
               ('App accuracy (%)', summary.get('accuracy_pct')), ('App word-reading category', summary.get('level')),
+              ('Teacher-confirmed Non-Reader', 'Yes' if summary.get('teacher_non_reader') else 'No'),
               ('Correct words per minute', summary.get('wpm')), ('Reading seconds', summary.get('reading_time_s')),
               ('Words attempted / total', str(summary.get('words_attempted', '')) + ' / ' + str(summary.get('words_total', '')))]
     scores = ''.join('<tr><th>' + cell(k) + '</th><td>' + cell(v) + '</td></tr>' for k, v in values)
@@ -259,6 +261,7 @@ def score_reading(body: ScoreRequest):
         raise HTTPException(422, f"Expected {passage['word_count']} word marks.")
     result = score([m.model_dump() for m in body.marks], body.first_t, body.last_t, app.state.cfg)
     result.update(grade_profile(result, body.comprehension_correct, body.comprehension_total, body.reviewed_miscues))
+    result['teacher_non_reader'] = body.teacher_non_reader
     result['counted_miscue_types'] = ', '.join(app.state.cfg['scoring']['counted_miscues'])
     if body.save:
         row = dict(session_id=body.session_id, timestamp=datetime.now().astimezone().isoformat(timespec='seconds'),
@@ -274,7 +277,8 @@ def score_reading(body: ScoreRequest):
                           first_t=body.first_t, last_t=body.last_t, teacher_edited=body.teacher_edited,
                           engine=body.engine, validation_mode=body.validation_mode,
                           comprehension_correct=body.comprehension_correct, comprehension_total=body.comprehension_total,
-                          reviewed_miscues=body.reviewed_miscues, grading=result)
+                          reviewed_miscues=body.reviewed_miscues, teacher_non_reader=body.teacher_non_reader,
+                          grading=result)
             app.state.store.save(row, detail)
         except (OSError, sqlite3.Error):
             raise HTTPException(500, 'Could not save the result. Check available disk space and folder permissions.')

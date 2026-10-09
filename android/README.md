@@ -28,6 +28,8 @@ The models are **not bundled in the APK**. The ZIP importer checks paths, size a
 
 Choose or import a passage, enter a learner name, then start. Stop finalizes the Vosk stream and opens Results. A draft contains confirmed marks and teacher corrections, not tentative word highlights. Recovery appears in Setup after process death. Settings controls whether completed readings and raw audio are saved. Audio is 16 kHz mono PCM WAV. Recordings can be played, shared as WAV, or deleted. The word editor can begin playback from the corresponding word when Vosk supplied a timestamp.
 
+Teacher grading includes a **Teacher confirms Non-Reader** checkbox. Apply the teacher review, then save the result if autosave is off. The status appears in history and exports while the numeric word-reading category stays unchanged. A 0% speech match alone does not set this status.
+
 **Export CSV**, **Export report**, **Export WAV**, and **Backup** use Android's share sheet. Backup is a ZIP containing JSON passages/readings/preferences plus local WAV files. Copy it to a safe location via the share sheet. It is an export, not an in-app restore feature. Scanned PDFs require OCR before import. PDF parsing is local. Files are limited to 10 MB and 100,000 extracted characters.
 
 For verification status and known gaps, see [FEATURE_PARITY.md](FEATURE_PARITY.md).

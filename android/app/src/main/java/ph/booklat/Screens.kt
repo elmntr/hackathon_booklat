@@ -41,8 +41,8 @@ import java.util.UUID
     var q by remember { mutableStateOf("") };Field("Search history",q,{q=it})
     val rows=vm.history.filter { it.learner.contains(q,true)||it.passage.title.contains(q,true) }
     if(rows.isEmpty()) Text("No saved readings.") else LazyColumn(Modifier.heightIn(max=288.dp).fillMaxWidth().background(Chalk)) { items(rows,key={it.id}) { r->
-        val color=if(!vm.colors) Ink else when(r.score.level){"independent"->Green;"instructional"->Amber;"frustration"->Color(0xff5c3b77);else->Ink}
-        Column(Modifier.fillMaxWidth().clickable { vm.open(r) }.padding(12.dp)) { Text(r.learner,color=color,fontWeight=FontWeight.Bold);Text(r.passage.title);Text("${r.score.accuracy?:"n/a"}% / ${r.score.level?:"Not assessed"}",color=color);HorizontalDivider(color=Rule) }
+        val color=if(!vm.colors || r.teacherNonReader) Ink else when(r.score.level){"independent"->Green;"instructional"->Amber;"frustration"->Color(0xff5c3b77);else->Ink}
+        Column(Modifier.fillMaxWidth().clickable { vm.open(r) }.padding(12.dp)) { Text(r.learner,color=color,fontWeight=FontWeight.Bold);Text(r.passage.title);Text("${r.score.accuracy?:"n/a"}% / ${if(r.teacherNonReader) "Non-Reader (teacher)" else r.score.level?:"Not assessed"}",color=color);HorizontalDivider(color=Rule) }
     } }
 }
 @Composable fun LivePassage(vm:BooklatModel,size:Float) {
@@ -80,18 +80,20 @@ import java.util.UUID
     }
 }
 @Composable fun Grading(vm:BooklatModel,r:Reading) {
-    var miscues by remember(r.id){mutableStateOf(r.reviewed?.toString()?:"")};var answers by remember(r.id){mutableStateOf(r.answers?.toString()?:"")};var total by remember(r.id){mutableStateOf(r.questions?.toString()?:"")}
+    var miscues by remember(r.id){mutableStateOf(r.reviewed?.toString()?:"")};var answers by remember(r.id){mutableStateOf(r.answers?.toString()?:"")};var total by remember(r.id){mutableStateOf(r.questions?.toString()?:"")};var nonReader by remember(r.id){mutableStateOf(r.teacherNonReader)}
     var error by remember { mutableStateOf("") }
     Heading("Teacher grading")
     Field("Reviewed miscues",miscues,{miscues=it},true);Field("Correct answers",answers,{answers=it},true);Field("Questions administered",total,{total=it},true)
-    Action("Apply grading") {
+    Check("Teacher confirms Non-Reader",nonReader){nonReader=it}
+    Action("Apply teacher review") {
         val m=miscues.toIntOrNull();val a=answers.toIntOrNull();val t=total.toIntOrNull()
         error=when {miscues.isNotBlank()&&(m==null||m !in 0..100000)->"Enter a whole miscue count from 0 to 100000.";answers.isBlank()!=total.isBlank()->"Enter both comprehension scores.";answers.isNotBlank()&&(a==null||t==null||t !in 1..1000||a !in 0..t)->"Correct answers must be from 0 to the question count (1 to 1000).";else->""}
-        if(error.isEmpty()) {r.reviewed=m;r.answers=a;r.questions=t;vm.revision++;if(vm.autosave)vm.save()}
+        if(error.isEmpty()) {r.reviewed=m;r.answers=a;r.questions=t;r.teacherNonReader=nonReader;vm.revision++;if(vm.autosave)vm.save()}
     }
     if(error.isNotBlank()) Text(error,color=Wine)
     Text("Word score: ${r.wordPercent?.let { rounded(it,2) }?:"n/a"}%\nWord component: ${if(r.score.partial) "Incomplete reading" else category(r.wordPercent)?:"n/a"}\nComprehension: ${r.comprehension?.let { rounded(it,2) }?:"n/a"}%\nComprehension component: ${category(r.comprehension,80.0,59.0)?:"n/a"}",lineHeight=28.sp)
     Text(if(r.reviewed==null) "Automatic miscue estimate. Teacher review required." else "Teacher-reviewed miscue total.")
+    if(r.teacherNonReader) Text("Non-Reader status confirmed by the teacher. The word score remains separate.")
     Text("Component profile only. No overall Phil-IRI placement. Comprehension is entered by a teacher.")
 }
 @Composable fun ImportScreen(vm:BooklatModel) {
