@@ -1731,6 +1731,7 @@ let landingVisited=false, demoTimer=null, settingsReturn='setup', homeAfterFinis
 let playbackUrl=null, playbackFrame=null, playbackIndex=-1, playbackOffset=0;
 let finishTimer=null, finishDeadline=0, finishCancelled=false, micChecking=false, micStopRequested=false, resumeDraft=null, draftTimer=null, lastFollowed=-1;
 let passages = [], modelReady = false, starting = false, session = null, screen = 'landing';
+let pendingPassageId='';
 let socket = null, stream = null, context = null, source = null, worklet = null;
 let timerId, stopTimeout, toastTimeout, scoreTimeout, selected = null, startedAt = null, stopping = false;
 let flushResolve = null, revision = 0, scoreRequest = 0;
@@ -1789,6 +1790,7 @@ function showScreen(name) {
   $('open-settings').title=name==='reading'?'Finish reading to open settings':'Settings';
   for(const [id,active] of [['nav-home',name==='landing'],['nav-reading',['setup','reading','results'].includes(name)],['open-settings',name==='settings']]){const button=$(id);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');button.disabled=name==='reading'||starting;}
   if(name==='setup')requestAnimationFrame(fitHistoryViewport);
+  rememberPage();
 }
 function goHome(){landingVisited=false;resetPlayback();showScreen('landing');playDemo();window.scrollTo({top:0,behavior:'auto'});$('open-app').focus();}
 $('booklat-home').onclick=async event=>{event.preventDefault();if(starting)return;if(screen==='reading'){homeAfterFinish=true;persistDraft();if(stopping&&socket===null){await resultsScreen(session.autosave);}else if(!stopping)await stopReading();}else goHome();};
@@ -2388,7 +2390,7 @@ demoMotion.addEventListener('change', playDemo);
 playDemo();
 
 
-$('setup-form').addEventListener('submit',startReading);$('learner').addEventListener('input',()=>{startState();restoreBookPlace();});
+$('setup-form').addEventListener('submit',startReading);$('learner').addEventListener('input',()=>{startState();restoreBookPlace();rememberPage();});
 $('engine-select').addEventListener('change',()=>{applyEngineHealth();savePreferences();});
 $('validation-mode').addEventListener('change',savePreferences);$('autosave').addEventListener('change',savePreferences);
 $('history-search-form').onsubmit=event=>{event.preventDefault();$('history-viewport').scrollTop=0;recent();};
@@ -2396,7 +2398,7 @@ $('history-viewport').addEventListener('scroll',()=>{const viewport=$('history-v
 function applyHistoryColors(){$('history-viewport').classList.toggle('history-colored',$('history-colors').checked);}
 $('history-colors').onchange=()=>{applyHistoryColors();savePreferences();};
 $('choose-document').onclick=()=>$('import-file').click();$('import-file').onchange=importDocument;$('use-excerpt').onclick=useExcerpt;$('import-text').oninput=importCount;$('passage-form').onsubmit=savePassage;
-$('passage-select').addEventListener('change',()=>{rememberBook(passages.find(p=>p.id===$('passage-select').value));applyEngineHealth();const p=passages.find(p=>p.id===$('passage-select').value);$('preview').textContent=p?.text||'';$('preview-heading').textContent=p?.title||'';renderPassageList();});
+$('passage-select').addEventListener('change',()=>{pendingPassageId=$('passage-select').value;rememberBook(passages.find(p=>p.id===$('passage-select').value));applyEngineHealth();const p=passages.find(p=>p.id===$('passage-select').value);$('preview').textContent=p?.text||'';$('preview-heading').textContent=p?.title||'';renderPassageList();rememberPage();});
 $('retry-score').onclick=()=>updateScore(!!session.pendingSave).catch(e=>toast(e.message));
 $('stop').onclick=stopReading;$('save').onclick=()=>updateScore(true).catch(e=>toast(e.message));
 for(const id of ['new-reading','try-again','restart'])$(id).onclick=newReading;
@@ -2406,29 +2408,31 @@ document.addEventListener('click',e=>{for(const menu of document.querySelectorAl
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const menus=[...document.querySelectorAll('.history-downloads[open]')];if(menus.length){e.preventDefault();for(const menu of menus){menu.open=false;menu.querySelector('summary').focus();}return;}if($('passage-dialog').open&&!$('editor').hidden)e.preventDefault();closeEditor(true,true);}if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('w')){e.preventDefault();openEditor(Number(e.target.dataset.idx));if(validationVisible(Number(e.target.dataset.idx)))$('editor').querySelector('button').focus();}else if(e.code==='Space'&&screen==='reading'&&!e.target.closest('button,input,select,textarea')){e.preventDefault();stopReading();}});
 function rememberPage(){
   try{
-    const review=session&&screen!=='reading'?Object.fromEntries(Object.entries(session).filter(([key])=>!['audioBlob','audioFrames','diagnostics','locked','provisional'].includes(key))):null;
-    sessionStorage.setItem('booklat-page',JSON.stringify({screen,settingsReturn,learner:$('learner').value,passage:$('passage-select').value,review}));
+    const review=session&&screen!=='reading'?Object.fromEntries(Object.entries(session).filter(([key])=>!['audioBlob','audioFrames','diagnostics','locked','provisional','saveQueue'].includes(key))):null;
+    if(review)review.locked=[...session.locked];
+    sessionStorage.setItem('booklat-page',JSON.stringify({screen,settingsReturn,learner:$('learner').value,passage:$('passage-select').value||pendingPassageId,review}));
   }catch{ /* Storage may be unavailable or full; normal navigation still works. */ }
 }
-async function restorePage(){
+function restorePage(){
   let saved;try{saved=JSON.parse(sessionStorage.getItem('booklat-page')||'null');}catch{return;}
   if(!saved||!['landing','setup','reading','results','settings'].includes(saved.screen))return;
-  $('learner').value=saved.learner||'';
-  if(passages.some(p=>p.id===saved.passage))populatePassages(saved.passage);
+  $('learner').value=typeof saved.learner==='string'?saved.learner:'';
+  pendingPassageId=typeof saved.passage==='string'?saved.passage:'';
   landingVisited=saved.screen!=='landing';if(landingVisited)clearInterval(demoTimer);
   settingsReturn=['landing','setup','results'].includes(saved.settingsReturn)?saved.settingsReturn:'setup';
-  if(saved.review?.passage&&Array.isArray(saved.review.marks)){
-    session={...saved.review,locked:new Set(),provisional:new Set(),audioFrames:[],diagnostics:[],debug:false};
-    await resultsScreen(false);
+  if(Array.isArray(saved.review?.passage?.tokens)&&Array.isArray(saved.review.marks)&&saved.review.marks.length===saved.review.passage.tokens.length){
+    session={...saved.review,locked:new Set(Array.isArray(saved.review.locked)?saved.review.locked:[]),provisional:new Set(),saveQueue:undefined,audioFrames:[],diagnostics:[],debug:false};
+    resultsScreen(false).catch(error=>toast(error.message));
   }
   const target=saved.screen==='reading'||saved.screen==='results'&&!session?'setup':saved.screen;
   if(settingsReturn==='results'&&!session)settingsReturn='setup';
   showScreen(target);startState();
-  if(saved.screen==='reading')toast('Reading paused by refresh. Use Continue reading to resume your saved draft.');
+  if(saved.screen==='reading')toast(loadDraft()?'Reading paused by refresh. Use Continue reading to resume your saved draft.':'Reading stopped by refresh. Start a new reading when ready.');
+  return pendingPassageId;
 }
 window.addEventListener('pagehide',rememberPage);
 window.addEventListener('beforeunload',()=>{rememberPage();micStopRequested=true;persistDraft();stream?.getTracks().forEach(t=>t.stop());socket?.close();});
-(async()=>{const prefs=preferences();$('engine-select').value='vosk';if(['live','auto_finish','after_pause'].includes(prefs.validation))$('validation-mode').value=prefs.validation;else if(prefs.validation==='after_stop')$('validation-mode').value='auto_finish';if(typeof prefs.autosave==='boolean')$('autosave').checked=prefs.autosave;if([1,2,3].includes(prefs.finishDelay))$('finish-delay').value=String(prefs.finishDelay);if(typeof prefs.followLine==='boolean')$('follow-line').checked=prefs.followLine;if(typeof prefs.recordVoice==='boolean')$('record-voice').checked=prefs.recordVoice;if(typeof prefs.historyColors==='boolean')$('history-colors').checked=prefs.historyColors;applyHistoryColors();importCount();pollHealth();showDraft();try{passages=await api('/api/passages');populatePassages();}catch(error){$('setup-error').textContent=error.message+' Refresh this page to try again.';$('setup-error').hidden=false;}await recent();await restorePage();})();
+(async()=>{const prefs=preferences();$('engine-select').value='vosk';if(['live','auto_finish','after_pause'].includes(prefs.validation))$('validation-mode').value=prefs.validation;else if(prefs.validation==='after_stop')$('validation-mode').value='auto_finish';if(typeof prefs.autosave==='boolean')$('autosave').checked=prefs.autosave;if([1,2,3].includes(prefs.finishDelay))$('finish-delay').value=String(prefs.finishDelay);if(typeof prefs.followLine==='boolean')$('follow-line').checked=prefs.followLine;if(typeof prefs.recordVoice==='boolean')$('record-voice').checked=prefs.recordVoice;if(typeof prefs.historyColors==='boolean')$('history-colors').checked=prefs.historyColors;applyHistoryColors();importCount();showDraft();const restoredPassage=restorePage();pollHealth();try{passages=await api('/api/passages');populatePassages(passages.some(p=>p.id===restoredPassage)?restoredPassage:undefined);if(session)updateBookPlace();}catch(error){$('setup-error').textContent=error.message+' Refresh this page to try again.';$('setup-error').hidden=false;}await recent();})();
 </script>
 </body>
 </html>

@@ -70,3 +70,5 @@ The landing extends the reading-sheet hero with a numbered passage-to-review wor
 About Booklat explains the teacher’s assessment workload, the project’s purpose and its speech-recognition and teacher-review approach in three short sections. Laptop/server details are omitted from this disclosure.
 
 The problem statement cites the OECD PISA 2025 Philippines country note: 31% of assessed 15-year-olds reached Level 2 or higher in reading. It describes a continuing challenge rather than an unsupported decline. The source opens on request in a separate tab; no external content loads with the landing page.
+
+Reload restores the current tab’s page before passages or history finish loading. Navigation and learner/passage selection are saved as they change. Refreshing an active reading returns to setup with the existing confirmed-draft recovery controls; it never restarts the microphone automatically.
