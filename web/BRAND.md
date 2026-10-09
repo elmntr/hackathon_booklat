@@ -18,7 +18,7 @@ Copy describes what the teacher does on their laptop. No slogans, exclamation ma
 Surfaces have square edges, controls use 4px corners, temporary messages use 8px, and word marks use 2px. Table cells stay continuous inside their rounded container. Borders and tone carry hierarchy; ordinary surfaces have no drop shadow.
 All layout spacing comes from the shared 4px-based CSS scale. The existing ruled passage preview represents the teacher's reading notebook.
 The demo reveals the app's actual word states in sequence. Reduced motion shows the final marks without a loop.
-Entry is remembered in a JavaScript variable only. Reloading brings the landing back.
+The current screen, setup selection and result review are remembered per browser tab across refreshes. Active recording returns to setup with draft recovery; microphone capture never restarts automatically.
 Secondary explanations sit inside the closed About Booklat disclosure. Main screens use headings, labels and live state; mascot captions and repeated helper paragraphs are omitted.
 The landing pairs large classroom lettering with a slightly turned reading sheet. Its folded corner and firm offset edge come from Tupi’s paper bookmark; the live passage remains clear of the mascot.
 

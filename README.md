@@ -169,7 +169,7 @@ Teachers can enter comprehension correct answers and total administered question
 
 Saved records retain a grading snapshot. CSV exports add component percentages, levels, teacher counts, grading status, formulas' criteria thresholds, and source/version. Legacy records retain their original scores; unassessed components remain empty. **Download grading report**, available after saving, produces a standalone printable HTML report with scores, rubric, source, and word recognition timestamps. Open that report in a browser to print or save as PDF. Database backups retain the rubric snapshot along with readings and audio.
 
-Source: https://tec.deped.gov.ph/wp-content/uploads/2020/09/PPST.RP_Module-11.pdf
+Source: [DepEd PPST Resource Package Module 11 — DepEd Manila copy](https://depedph-my.sharepoint.com/:b:/g/personal/lrms_manila_deped_gov_ph/EcCrs5zU1fZKqzNFxzbKgoUBBvvgAwjtsX9j4XKZpYtT5g?e=Lk2UtR), printed page 20.
 Policy: https://www.deped.gov.ph/2018/03/26/do-14-s-2018-policy-guidelines-on-the-administration-of-the-revised-philippine-informal-reading-inventory/
 
 
