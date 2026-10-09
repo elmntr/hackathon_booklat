@@ -60,3 +60,5 @@ Passage filters and favorites are removed. Search alone chooses a passage. The t
 Full passage text size accepts any positive number of pixels, with no upper cap. Import controls use one document action, a filename, a compact metadata column and a larger passage editor. Save actions sit together below the editor; the native file input remains hidden behind a keyboard-accessible button.
 
 Book-section creation is removed from the import section. Text size uses the original preset dropdown plus Custom, which reveals a plain decimal text field with no spinner. Remaining numeric form controls also omit spinner arrows.
+
+Booklat uses light mode only. System dark-mode preferences do not change its palette or native form controls.
