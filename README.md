@@ -2,6 +2,10 @@
 
 An offline oral-reading assessor for Filipino public-school teachers. A learner reads an English or Filipino passage while words are marked on screen. Teachers can correct the suggested marks, review word-reading accuracy and reading level, and save results as CSV.
 
+## Windows 11
+
+See [Windows setup and hardware comparison](WINDOWS.md). Use `setup-windows.cmd` for initial setup and `run-windows.cmd` to launch.
+
 ## Live streaming trial (Vosk)
 
 Booklat now offers **Vosk · live streaming trial** and **Whisper · original comparison** in the Setup screen. Vosk is an optional dependency with separate local English and Filipino models. Prepare it once while online, using the existing project environment:
