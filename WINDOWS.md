@@ -25,9 +25,17 @@ Use a fresh clone. Do not copy the Linux `.venv`: environments are platform-spec
    .\run-windows.cmd
    ```
 
-4. Open http://localhost:8000 in Chrome, Edge, or Brave. Allow the microphone, select **Vosk · live streaming trial**, and wait for **Vosk ready**. Keep the terminal open. Later runs need only `.\run-windows.cmd`; internet is no longer required.
+4. Open http://localhost:8000 in Chrome, Edge, or Brave. Allow the microphone, select **Vosk · continuous speech**, and wait for **Vosk ready**. Keep the terminal open. Later runs need only `.\run-windows.cmd`; internet is no longer required.
 
 Model files and environments are ignored by Git and must be downloaded separately. You can instead copy the existing `models/` directory for Vosk, but never copy `.venv`. The Filipino model retains its CC-BY-NC-SA 4.0 noncommercial license.
+
+## Optional NVIDIA GPU acceleration
+
+The Vosk live trial runs on the CPU. To use an NVIDIA GPU, install the Whisper model with `.\setup-windows.cmd whisper`, install the CUDA 12 cuBLAS and cuDNN 9 runtime libraries, and make their DLL folders available on `PATH` before starting Booklat. See the [faster-whisper GPU instructions](https://github.com/SYSTRAN/faster-whisper#gpu) for the current Windows library setup. Restart PowerShell after changing `PATH`.
+
+When CTranslate2 detects CUDA, Booklat automatically runs Whisper on the GPU with FP16 and a wider search beam; otherwise it falls back to CPU. The Whisper model chip shows **GPU** or **CPU**; hover over it to see the CUDA fallback reason. Select **Whisper · phrase recognition** in the app to use it. GPU acceleration speeds up Whisper inference, but Whisper still waits for each audio chunk to finish before updating; it does not accelerate the Vosk live stream. GPU support here requires NVIDIA CUDA. Other GPU vendors continue to use the CPU.
+
+Resource settings are in `server/config.yaml`: `asr.device` (`auto`, `cpu`, or `cuda`), `cpu_threads`, `gpu_compute_type`, and `gpu_beam_size`. The default caps Whisper at four CPU threads and uses CUDA when ready. `BOOKLAT_DEVICE` overrides the device for a launch. Restart after changing settings. Both **As I read** and **After Stop** are available with either engine; Whisper still returns phrase-level results. Re-run setup once to install PDF import support, then imports and the SQLite library work offline.
 
 ## Compare hardware fairly
 

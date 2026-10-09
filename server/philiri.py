@@ -1,0 +1,38 @@
+"""Phil-IRI component rubric; teacher review is required for ASR suggestions."""
+RUBRIC = {
+    'version': 'Phil-IRI 2018 component criteria / Booklat profile v1',
+    'source_title': 'DepEd PPST Resource Package Module 11, Phil-IRI criteria',
+    'source_url': 'https://tec.deped.gov.ph/wp-content/uploads/2020/09/PPST.RP_Module-11.pdf',
+    'criteria': [
+        {'level': 'independent', 'word_reading': '97–100%', 'comprehension': '80–100%', 'description': 'Reads and understands material independently.'},
+        {'level': 'instructional', 'word_reading': '90–96%', 'comprehension': '59–79%', 'description': 'Benefits from teacher guidance.'},
+        {'level': 'frustration', 'word_reading': '89% and below', 'comprehension': '58% and below', 'description': 'Needs substantial support with this material.'},
+    ],
+    'word_formula': '(Passage words − counted miscues) ÷ passage words × 100',
+    'comprehension_formula': 'Correct answers ÷ questions administered × 100',
+    'notes': 'Decimal scores use thresholds 97/90 for word reading and 80/59 for comprehension. WPM does not determine these levels. Component levels are reported separately; no overall Phil-IRI placement is assigned automatically. Teacher administration, suitable passages and review of all miscue types are required.',
+}
+
+
+def component_level(percent, independent, instructional):
+    if percent is None:
+        return None
+    return 'independent' if percent >= independent else 'instructional' if percent >= instructional else 'frustration'
+
+
+def grade_profile(result, comprehension_correct=None, comprehension_total=None, reviewed_miscues=None):
+    total = result['words_total']
+    miscues = result['miscues'] if reviewed_miscues is None else reviewed_miscues
+    raw_word = max(0.0, (total - miscues) / total * 100) if total and result['words_attempted'] else None
+    raw_comprehension = comprehension_correct / comprehension_total * 100 if comprehension_total else None
+    return dict(
+        rubric=RUBRIC, philiri_word_score_pct=round(raw_word, 2) if raw_word is not None else None,
+        philiri_word_level=component_level(raw_word, 97, 90) if not result['partial'] else None,
+        comprehension_correct=comprehension_correct, comprehension_total=comprehension_total,
+        comprehension_pct=round(raw_comprehension, 2) if raw_comprehension is not None else None,
+        comprehension_level=component_level(raw_comprehension, 80, 59),
+        reviewed_miscues=reviewed_miscues, philiri_miscues=miscues,
+        grading_status='incomplete_reading' if result['partial'] else 'teacher_reviewed_miscue_total' if reviewed_miscues is not None else 'automated_word_estimate',
+        overall_philiri_level=None,
+        grading_note='Component profile only. No overall placement. Automatic miscues cover available word marks; a teacher must review other miscue types. Comprehension is entered by a teacher, not inferred from speech.',
+    )
